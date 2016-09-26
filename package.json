@@ -1,0 +1,32 @@
+{
+  "name": "node-elma",
+  "version": "1.0.0",
+  "description": "Elasto Mania npm package to read, modify and write Elma files",
+  "main": "index.js",
+  "scripts": {
+    "test": "ava"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hexjelly/node-elma.git"
+  },
+  "keywords": [
+    "elasto mania",
+    "elma",
+    "replay",
+    "level",
+    "game"
+  ],
+  "author": "Roger Andersen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hexjelly/node-elma/issues"
+  },
+  "homepage": "https://github.com/hexjelly/node-elma#readme",
+  "devDependencies": {
+    "ava": "^0.16.0"
+  },
+  "dependencies": {
+    "binary-file": "^0.2.1"
+  }
+}
