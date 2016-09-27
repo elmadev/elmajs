@@ -1,7 +1,9 @@
-import binary from 'binary-file'
+const binary = require('binary-file')
 
-export default class Replay {
+class Replay {
   constructor (filePath) {
     //
   }
 }
+
+module.exports = Replay

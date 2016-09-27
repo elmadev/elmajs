@@ -1,8 +1,14 @@
-import binary from 'binary-file'
-import { TOP10 } from './const'
+const binary = require('binary-file')
+const TOP10 = require('./const')
 
-export default class Level {
+/**
+ * Test?!
+ * @class Class containing all level attributes.
+ */
+class Level {
   constructor (filePath) {
     //
   }
 }
+
+module.exports = Level

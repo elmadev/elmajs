@@ -1,3 +1,5 @@
-export function formatTime () {
+function formatTime () {
   //
 }
+
+module.exports = formatTime
