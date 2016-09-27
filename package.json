@@ -2,9 +2,9 @@
   "name": "node-elma",
   "version": "1.0.0",
   "description": "Elasto Mania npm package to read, modify and write Elma files",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
-    "test": "ava"
+    "test": "ava --verbose"
   },
   "repository": {
     "type": "git",
