@@ -18,6 +18,15 @@ class Level {
     let level = new Level()
     return level
   }
+
+  /**
+   * Saves a level to file.
+   * @param {string} filePath Path to file
+   * @returns {bool} Failure or success
+   */
+  save (filePath) {
+    return false
+  }
 }
 
 module.exports = Level

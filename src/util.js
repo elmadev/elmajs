@@ -2,4 +2,6 @@ function formatTime () {
   //
 }
 
-module.exports = formatTime
+module.exports = {
+  formatTime
+}
