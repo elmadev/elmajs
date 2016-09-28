@@ -8,6 +8,15 @@ class Level {
   constructor (filePath) {
     //
   }
+
+  /**
+   * Loads a level from file.
+   * @param {string} filePath Path to file
+   * @returns {Level} Level class object
+   */
+  static load (filePath) {
+    //
+  }
 }
 
 module.exports = Level
