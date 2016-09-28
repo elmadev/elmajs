@@ -9,8 +9,8 @@ test('Level load() static method returns instance of Level', t => {
 })
 
 // Replay test... test
-test('Constructs replay class', t => {
-  let replay = new Replay()
+test('Replay load() static method returns instance of Replay', t => {
+  let replay = Replay.load()
   t.true(replay instanceof Replay)
 })
 
