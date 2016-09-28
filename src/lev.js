@@ -15,7 +15,8 @@ class Level {
    * @returns {Level} Level class object
    */
   static load (filePath) {
-    //
+    let level = new Level()
+    return level
   }
 }
 
