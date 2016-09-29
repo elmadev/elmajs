@@ -1,11 +1,15 @@
-const binary = require('binary-file')
 
 /**
  * Class containing all replay attributes.
  */
 class Replay {
-  constructor (filePath) {
-    //
+  constructor () {
+    this.link = 0
+    this.level
+    this.multi = false
+    this.flagTag = false
+    this.frames = [[], []]
+    this.events = [[], []]
   }
 
   /**
@@ -16,6 +20,15 @@ class Replay {
   static load (filePath) {
     let replay = new Replay()
     return replay
+  }
+
+  /**
+   * Saves a replay to file.
+   * @param {string} filePath Path to file
+   * @returns {bool} Failure or success
+   */
+  save (filePath) {
+    return false
   }
 }
 

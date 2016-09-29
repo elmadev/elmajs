@@ -4,7 +4,7 @@
   "description": "Elasto Mania npm package to read, modify and write Elma files",
   "main": "src/index.js",
   "scripts": {
-    "test": "nyc ava --verbose",
+    "test": "nyc ava",
     "docs": "documentation build --output=docs --format=html --github"
   },
   "repository": {
@@ -30,6 +30,5 @@
     "nyc": "^8.3.0"
   },
   "dependencies": {
-    "binary-file": "^0.2.1"
   }
 }

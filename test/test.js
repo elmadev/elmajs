@@ -5,12 +5,23 @@ const Replay = require('../src').Replay
 /* * * * * * * *
  * Level tests *
  * * * * * * * */
-test('Level load() static method returns instance of Level', t => {
-  let level = Level.load()
-  t.true(level instanceof Level)
+test('Valid Level 1: load() returns instance of Level', t => {
+  t.plan(1)
+
+  return Level.load('lev_valid_1.lev').then(result => {
+    t.true(result instanceof Level)
+  }).catch(error => t.fail(error.Error))
 })
 
-test('Level save() method without modifications matches original level', t => {
+test('Valid Level 2: load() returns instance of Level', t => {
+  t.plan(1)
+
+  return Level.load('lev_valid_2.lev').then(result => {
+    t.true(result instanceof Level)
+  }).catch(error => t.fail(error.Error))
+})
+
+test.skip('Level save() method without modifications matches original level', t => {
   t.plan(1)
   let level = Level.load()
   t.true(level.save())
@@ -20,7 +31,7 @@ test('Level save() method without modifications matches original level', t => {
  * Replay tests  *
  * * * * * * * * */
 test('Replay load() static method returns instance of Replay', t => {
-  let replay = Replay.load()
+  let replay = Replay.load('rec_valid_1.rec')
   t.true(replay instanceof Replay)
 })
 

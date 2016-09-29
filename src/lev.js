@@ -1,12 +1,25 @@
-const binary = require('binary-file')
+const fs = require('fs')
 const TOP10 = require('./const')
 
 /**
  * Class containing all level attributes.
  */
 class Level {
-  constructor (filePath) {
-    //
+  constructor () {
+    this.version = 'Elma'
+    this.link = 0
+    this.integrity = [0.0, 0.0, 0.0, 0.0]
+    this.lgr = 'Default'
+    this.name = 'New level'
+    this.ground = 'ground'
+    this.sky = 'sky'
+    this.polygons = []
+    this.objects = []
+    this.pictures = []
+    this.top10 = {
+      single: [],
+      multi: []
+    }
   }
 
   /**
@@ -15,8 +28,13 @@ class Level {
    * @returns {Level} Level class object
    */
   static load (filePath) {
-    let level = new Level()
-    return level
+    return new Promise((resolve, reject) => {
+      fs.readFile(filePath, (error, buffer) => {
+        if (error) reject(error)
+        let level = new Level()
+        resolve(level)
+      })
+    })
   }
 
   /**
