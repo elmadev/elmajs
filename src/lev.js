@@ -38,6 +38,47 @@ class Level {
   }
 
   /**
+   * Internal convinience method.
+   * @returns {Promise} Promise
+   */
+  _update () {
+    return new Promise((resolve, reject) => {
+      if (true) resolve()
+      reject()
+    })
+  }
+
+  /**
+   * Toplogy check
+   * @returns {Promise} Promise
+   */
+  _checkTopology () {
+    return new Promise((resolve, reject) => {
+      if (true) resolve()
+      reject()
+    })
+  }
+
+  /**
+   * Returns raw buffer data
+   * @returns {Promise} Promise
+   */
+  toBuffer () {
+    return new Promise((resolve, reject) => {
+      if (true) resolve()
+      reject()
+    })
+  }
+
+  /**
+   * Generate new link number.
+   */
+  generateLink () {
+    let max32 = Math.pow(2, 32) - 1
+    this.link = Math.floor(Math.random() * max32)
+  }
+
+  /**
    * Saves a level to file.
    * @param {string} filePath Path to file
    * @returns {Promise} Promise
