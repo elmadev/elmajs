@@ -25,7 +25,7 @@ class Level {
   /**
    * Loads a level from file.
    * @param {string} filePath Path to file
-   * @returns {Level} Level class object
+   * @returns {Promise} Promise
    */
   static load (filePath) {
     return new Promise((resolve, reject) => {
@@ -40,10 +40,10 @@ class Level {
   /**
    * Saves a level to file.
    * @param {string} filePath Path to file
-   * @returns {bool} Failure or success
+   * @returns {Promise} Promise
    */
   save (filePath) {
-    return false
+    return new Promise()
   }
 }
 

@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "test": "nyc ava",
-    "docs": "documentation build --output=docs --format=html --github"
+    "makedocs": "documentation build --output=docs --format=html --github"
   },
   "repository": {
     "type": "git",

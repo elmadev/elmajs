@@ -1,3 +1,4 @@
+const fs = require('fs')
 
 /**
  * Class containing all replay attributes.
@@ -15,20 +16,25 @@ class Replay {
   /**
    * Loads a replay from file.
    * @param {string} filePath Path to file
-   * @returns {Replay} Replay class object
+   * @returns {Promise} Promise
    */
   static load (filePath) {
-    let replay = new Replay()
-    return replay
+    return new Promise((resolve, reject) => {
+      fs.readFile(filePath, (error, buffer) => {
+        if (error) reject(error)
+        let replay = new Replay()
+        resolve(replay)
+      })
+    })
   }
 
   /**
    * Saves a replay to file.
    * @param {string} filePath Path to file
-   * @returns {bool} Failure or success
+   * @returns {Promise} Promise
    */
   save (filePath) {
-    return false
+    return new Promise()
   }
 }
 

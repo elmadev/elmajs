@@ -31,8 +31,11 @@ test.skip('Level save() method without modifications matches original level', t 
  * Replay tests  *
  * * * * * * * * */
 test('Replay load() static method returns instance of Replay', t => {
-  let replay = Replay.load('rec_valid_1.rec')
-  t.true(replay instanceof Replay)
+  t.plan(1)
+
+  return Replay.load('rec_valid_1.rec').then(result => {
+    t.true(result instanceof Replay)
+  }).catch(error => t.fail(error.Error))
 })
 
 /* * * * * * * *
