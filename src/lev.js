@@ -50,7 +50,7 @@ class Level {
   }
 
   /**
-   * Toplogy check
+   * Toplogy check.
    * @returns {Promise} Promise
    */
   _checkTopology () {
@@ -61,7 +61,7 @@ class Level {
   }
 
   /**
-   * Returns raw buffer data
+   * Returns level as buffer data.
    * @returns {Promise} Promise
    */
   toBuffer () {
