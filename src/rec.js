@@ -6,7 +6,7 @@ const fs = require('fs')
 class Replay {
   constructor () {
     this.link = 0
-    this.level
+    this.level = ''
     this.multi = false
     this.flagTag = false
     this.frames = [[], []]
@@ -26,6 +26,16 @@ class Replay {
         resolve(replay)
       })
     })
+  }
+
+  /**
+   * Get time of replay in milliseconds.
+   * @param {bool} hs Return hundredths
+   * @returns {Integer} time
+   */
+  getTime (hs) {
+    if (hs) return 0
+    return 0
   }
 
   /**
