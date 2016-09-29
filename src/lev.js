@@ -1,5 +1,5 @@
 const fs = require('fs')
-const TOP10 = require('./const')
+const defs = require('./const')
 
 /**
  * Class containing all level attributes.
@@ -9,12 +9,13 @@ class Level {
     this.version = 'Elma'
     this.link = 0
     this.integrity = [0.0, 0.0, 0.0, 0.0]
-    this.lgr = 'Default'
+    this.lgr = 'default'
     this.name = 'New level'
     this.ground = 'ground'
     this.sky = 'sky'
-    this.polygons = []
-    this.objects = []
+    this.polygons = [{ grass: false, vertices: [{ x: 10.0, y: 0.0 }, { x: 10.0, y: 7.0 }, { x: 0.0, y: 7.0 }, { x: 0.0, y: 0.0 }] }]
+    this.objects = [{ position: { x: 2.0, y: 7.0 - defs.OBJECT_RADIUS }, type: 'start' },
+                    { position: { x: 8.0, y: 7.0 - defs.OBJECT_RADIUS }, type: 'exit' }]
     this.pictures = []
     this.top10 = {
       single: [],
