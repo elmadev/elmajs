@@ -6,10 +6,11 @@ const Replay = require('../src').Replay
  * Level tests *
  * * * * * * * */
 test('Valid Level 1: load() returns instance of Level', t => {
-  t.plan(1)
+  t.plan(2)
 
   return Level.load('lev_valid_1.lev').then(result => {
     t.true(result instanceof Level)
+    t.is(result.version, 'POT14')
   }).catch(error => t.fail(error.Error))
 })
 

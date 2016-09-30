@@ -33,8 +33,21 @@ class Level {
       fs.readFile(filePath, (error, buffer) => {
         if (error) reject(error)
         let level = new Level()
+        level._parseFile(buffer)
         resolve(level)
       })
+    })
+  }
+
+  /**
+   * Parses file buffer data into a Level.
+   * @returns {Promise} Promise
+   */
+  _parseFile (buffer) {
+    return new Promise((resolve, reject) => {
+      this.version = buffer.toString('ascii', 0, 5)
+      if (true) resolve()
+      reject()
     })
   }
 
