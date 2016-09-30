@@ -5,21 +5,27 @@ const Replay = require('../src').Replay
 /* * * * * * * *
  * Level tests *
  * * * * * * * */
-test('Valid Level 1: load() returns instance of Level', t => {
+test('Valid level 1: load() returns instance of Level', t => {
   t.plan(2)
 
   return Level.load('lev_valid_1.lev').then(result => {
     t.true(result instanceof Level)
-    t.is(result.version, 'POT14')
+    t.is(result.version, 'Elma')
   }).catch(error => t.fail(error.Error))
 })
 
-test('Valid Level 2: load() returns instance of Level', t => {
+test('Valid level 2: load() returns instance of Level', t => {
   t.plan(1)
 
   return Level.load('lev_valid_2.lev').then(result => {
     t.true(result instanceof Level)
   }).catch(error => t.fail(error.Error))
+})
+
+test('Across level: load() returns error', t => {
+  t.plan(1)
+
+  return Level.load('lev_across.lev').then(result => t.fail()).catch(error => t.pass(error))
 })
 
 test.skip('Level save() method without modifications matches original level', t => {
@@ -29,7 +35,6 @@ test.skip('Level save() method without modifications matches original level', t 
 })
 
 test.todo('read level file')
-test.todo('reject Across levels')
 test.todo('check all level attributes with 3+ levels')
 test.todo('save level and check against original')
 
