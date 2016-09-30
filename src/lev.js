@@ -33,8 +33,7 @@ class Level {
       fs.readFile(filePath, (error, buffer) => {
         if (error) reject(error)
         let level = new Level()
-        level._parseFile(buffer)
-        resolve(level)
+        level._parseFile(buffer).then(results => resolve(results)).catch(error => reject(error))
       })
     })
   }
@@ -45,8 +44,20 @@ class Level {
    */
   _parseFile (buffer) {
     return new Promise((resolve, reject) => {
-      this.version = buffer.toString('ascii', 0, 5)
-      if (true) resolve()
+      // check version
+      let version = buffer.toString('ascii', 0, 5)
+      switch (version) {
+        case 'POT06':
+          reject('Across levels are not supported')
+          return
+        case 'POT14':
+          this.version = 'Elma'
+          break
+        default:
+          reject('Not valid Elma level.')
+          return
+      }
+      if (true) resolve(this)
       reject()
     })
   }
