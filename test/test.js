@@ -6,7 +6,7 @@ const Replay = require('../src').Replay
  * Level tests *
  * * * * * * * */
 test('Valid level 1: load() returns instance of Level', t => {
-  t.plan(24)
+  t.plan(43)
 
   return Level.load('lev_valid_1.lev').then(result => {
     t.true(result instanceof Level)
@@ -33,6 +33,25 @@ test('Valid level 1: load() returns instance of Level', t => {
     t.is(result.polygons[1].vertices[2].y, 1.8956975865594021)
     t.is(result.polygons[1].vertices[3].x, -23.96510511578293)
     t.is(result.polygons[1].vertices[3].y, 1.924285523801057)
+    t.is(result.objects.length, 8)
+    t.is(result.objects[0].x, -23.221818747499896)
+    t.is(result.objects[0].y, -1.3204453531268072)
+    t.is(result.objects[0].type, 'killer')
+    t.is(result.objects[1].x, -20.37252715482359)
+    t.is(result.objects[1].y, -0.3124543521844827)
+    t.is(result.objects[1].type, 'apple')
+    t.is(result.objects[1].animation, 9)
+    t.is(result.objects[1].gravity, 'normal')
+    t.is(result.objects[2].animation, 1)
+    t.is(result.objects[2].gravity, 'up')
+    t.is(result.objects[3].animation, 5)
+    t.is(result.objects[3].gravity, 'right')
+    t.is(result.objects[4].y, 0.38243398140588436)
+    t.is(result.objects[4].gravity, 'left')
+    t.is(result.objects[6].x, -20.075620321380434)
+    t.is(result.objects[6].y, -1.2473950191969765)
+    t.is(result.objects[6].type, 'exit')
+    t.is(result.objects[7].type, 'start')
   }).catch(error => t.fail(error.Error))
 })
 

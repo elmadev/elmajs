@@ -15,8 +15,8 @@ class Level {
     this.ground = 'ground'
     this.sky = 'sky'
     this.polygons = [{ grass: false, vertices: [{ x: 10.0, y: 0.0 }, { x: 10.0, y: 7.0 }, { x: 0.0, y: 7.0 }, { x: 0.0, y: 0.0 }] }]
-    this.objects = [{ position: { x: 2.0, y: 7.0 - DEFS.OBJECT_RADIUS }, type: 'start' },
-                    { position: { x: 8.0, y: 7.0 - DEFS.OBJECT_RADIUS }, type: 'exit' }]
+    this.objects = [{ x: 2.0, y: 7.0 - DEFS.OBJECT_RADIUS, type: 'start' },
+                    { x: 8.0, y: 7.0 - DEFS.OBJECT_RADIUS, type: 'exit' }]
     this.pictures = []
     this.top10 = {
       single: [],
@@ -107,6 +107,62 @@ class Level {
           polygon.vertices.push(vertex)
         }
         this.polygons.push(polygon)
+      }
+
+      // objects
+      let objectCount = buffer.readDoubleLE(offset) - 0.4643643
+      offset += 8
+      for (let i = 0; i < objectCount; i++) {
+        let object = {}
+        object.x = buffer.readDoubleLE(offset)
+        offset += 8
+        object.y = buffer.readDoubleLE(offset)
+        offset += 8
+        let objType = buffer.readInt32LE(offset)
+        offset += 4
+        let gravity = buffer.readInt32LE(offset)
+        offset += 4
+        let animation = buffer.readInt32LE(offset) + 1
+        offset += 4
+        switch (objType) {
+          case 1:
+            object.type = 'exit'
+            break
+          case 2:
+            object.type = 'apple'
+            switch (gravity) {
+              case 0:
+                object.gravity = 'normal'
+                break
+              case 1:
+                object.gravity = 'up'
+                break
+              case 2:
+                object.gravity = 'down'
+                break
+              case 3:
+                object.gravity = 'left'
+                break
+              case 4:
+                object.gravity = 'right'
+                break
+              default:
+                reject('Invalid gravity value')
+                return
+            }
+            object.animation = animation
+            break
+          case 3:
+            object.type = 'killer'
+            break
+          case 4:
+            object.type = 'start'
+            break
+          default:
+            reject('Invalid object value')
+            return
+        }
+        this.objects.push(object)
       }
 
       if (true) resolve(this)
