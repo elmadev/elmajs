@@ -44,6 +44,7 @@ class Level {
    */
   _parseFile (buffer) {
     return new Promise((resolve, reject) => {
+      let offset = 0
       // check version
       let version = buffer.toString('ascii', 0, 5)
       switch (version) {
@@ -56,6 +57,15 @@ class Level {
         default:
           reject('Not valid Elma level.')
           return
+      }
+      offset += 7
+      // link
+      this.link = buffer.readUInt32LE(offset)
+      offset += 4
+      // integrity sums
+      for (let i = 0; i < 4; i++) {
+        this.integrity[i] = buffer.readDoubleLE(offset)
+        offset += 8
       }
       if (true) resolve(this)
       reject()

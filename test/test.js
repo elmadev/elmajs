@@ -6,11 +6,16 @@ const Replay = require('../src').Replay
  * Level tests *
  * * * * * * * */
 test('Valid level 1: load() returns instance of Level', t => {
-  t.plan(2)
+  t.plan(7)
 
   return Level.load('lev_valid_1.lev').then(result => {
     t.true(result instanceof Level)
     t.is(result.version, 'Elma')
+    t.is(result.link, 1524269776)
+    t.is(result.integrity[0], -1148375.210607791)
+    t.is(result.integrity[1], 1164056.210607791)
+    t.is(result.integrity[2], 1162467.210607791)
+    t.is(result.integrity[3], 1162283.210607791)
   }).catch(error => t.fail(error.Error))
 })
 
