@@ -34,6 +34,9 @@ class Level {
       fs.readFile(filePath, (error, buffer) => {
         if (error) reject(error)
         let level = new Level()
+        // remove default polygons and objects
+        level.polygons = []
+        level.objects = []
         level._parseFile(buffer).then(results => resolve(results)).catch(error => reject(error))
       })
     })
@@ -46,6 +49,7 @@ class Level {
   _parseFile (buffer) {
     return new Promise((resolve, reject) => {
       let offset = 0
+
       // check version
       let version = buffer.toString('ascii', 0, 5)
       switch (version) {
@@ -59,15 +63,18 @@ class Level {
           reject('Not valid Elma level.')
           return
       }
-      offset += 7
+      offset += 7 // 2 extra garbage bytes
+
       // link
       this.link = buffer.readUInt32LE(offset)
       offset += 4
+
       // integrity sums
       for (let i = 0; i < 4; i++) {
         this.integrity[i] = buffer.readDoubleLE(offset)
         offset += 8
       }
+
       // level name
       this.name = trimString(buffer.slice(offset, offset + 51))
       offset += 51
@@ -80,7 +87,28 @@ class Level {
       // sky
       this.sky = trimString(buffer.slice(offset, offset + 10))
       offset += 10
-      
+
+      // polygons
+      let polyCount = buffer.readDoubleLE(offset) - 0.4643643
+      offset += 8
+      for (let i = 0; i < polyCount; i++) {
+        let polygon = {}
+        polygon.grass = Boolean(buffer.readInt32LE(offset))
+        polygon.vertices = []
+        offset += 4
+        let vertexCount = buffer.readInt32LE(offset)
+        offset += 4
+        for (let j = 0; j < vertexCount; j++) {
+          let vertex = {}
+          vertex.x = buffer.readDoubleLE(offset)
+          offset += 8
+          vertex.y = buffer.readDoubleLE(offset)
+          offset += 8
+          polygon.vertices.push(vertex)
+        }
+        this.polygons.push(polygon)
+      }
+
       if (true) resolve(this)
       reject()
     })

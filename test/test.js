@@ -6,7 +6,7 @@ const Replay = require('../src').Replay
  * Level tests *
  * * * * * * * */
 test('Valid level 1: load() returns instance of Level', t => {
-  t.plan(11)
+  t.plan(24)
 
   return Level.load('lev_valid_1.lev').then(result => {
     t.true(result instanceof Level)
@@ -20,6 +20,19 @@ test('Valid level 1: load() returns instance of Level', t => {
     t.is(result.lgr, 'default')
     t.is(result.ground, 'ground')
     t.is(result.sky, 'sky')
+    t.is(result.polygons.length, 2)
+    t.is(result.polygons[0].grass, false)
+    t.is(result.polygons[0].vertices[0].x, -23.993693053024586)
+    t.is(result.polygons[0].vertices[1].y, -3.135779367971911)
+    t.is(result.polygons[0].vertices[2].y, 1.995755366905195)
+    t.is(result.polygons[0].vertices[2].x, -15.989070625361132)
+    t.is(result.polygons[0].vertices[3].y, 2)
+    t.is(result.polygons[1].grass, true)
+    t.is(result.polygons[1].vertices[0].y, 2.310222676563402)
+    t.is(result.polygons[1].vertices[1].x, -17.60428907951465)
+    t.is(result.polygons[1].vertices[2].y, 1.8956975865594021)
+    t.is(result.polygons[1].vertices[3].x, -23.96510511578293)
+    t.is(result.polygons[1].vertices[3].y, 1.924285523801057)
   }).catch(error => t.fail(error.Error))
 })
 
