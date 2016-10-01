@@ -37,6 +37,12 @@ test('Across level: load() returns error', t => {
   return Level.load('lev_across.lev').then(result => t.fail()).catch(error => t.pass(error))
 })
 
+test('Garbage invalid level: load() returns error', t => {
+  t.plan(1)
+
+  return Level.load('lev_invalid_1.lev').then(result => t.fail()).catch(error => t.pass(error))
+})
+
 test.skip('Level save() method without modifications matches original level', t => {
   t.plan(1)
   let level = Level.load()
