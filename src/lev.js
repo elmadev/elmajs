@@ -1,5 +1,6 @@
 const fs = require('fs')
 const DEFS = require('./const')
+const trimString = require('./util').trimString
 
 /**
  * Class containing all level attributes.
@@ -67,6 +68,19 @@ class Level {
         this.integrity[i] = buffer.readDoubleLE(offset)
         offset += 8
       }
+      // level name
+      this.name = trimString(buffer.slice(offset, offset + 51))
+      offset += 51
+      // lgr
+      this.lgr = trimString(buffer.slice(offset, offset + 16))
+      offset += 16
+      // ground
+      this.ground = trimString(buffer.slice(offset, offset + 10))
+      offset += 10
+      // sky
+      this.sky = trimString(buffer.slice(offset, offset + 10))
+      offset += 10
+      
       if (true) resolve(this)
       reject()
     })
