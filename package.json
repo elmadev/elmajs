@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "test": "nyc ava --verbose",
-    "makedocs": "documentation build --output=docs --format=html --github"
+    "makedocs": "documentation build --output=docs --format=html --github",
+    "report-coverage": "nyc report --reporter=lcov | codecov"
   },
   "repository": {
     "type": "git",
@@ -26,9 +27,9 @@
   "homepage": "https://github.com/hexjelly/node-elma#readme",
   "devDependencies": {
     "ava": "^0.16.0",
+    "codecov": "^1.0.1",
     "coveralls": "^2.11.14",
     "nyc": "^8.3.0"
   },
-  "dependencies": {
-  }
+  "dependencies": {}
 }
