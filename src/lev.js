@@ -201,9 +201,67 @@ class Level {
         this.pictures.push(picture)
       }
 
+      // end of data marker
+      if (buffer.readInt32LE(offset) !== 0x0067103A) {
+        reject('End of data marker error')
+        return
+      }
+      offset += 4
+
+      // top10 lists
+      let top10Data = Level.cryptTop10(buffer.slice(offset, offset + 688))
+      this.top10.single = this._parseTop10(top10Data.slice(0, 344))
+      this.top10.multi = this._parseTop10(top10Data.slice(344))
+      offset += 688
+
       if (true) resolve(this)
       reject()
     })
+  }
+
+  /**
+   * Encrypts and decrypts top10 list data.
+   * @param {Buffer} buffer Data to encrypt or decrypt
+   * @returns {Buffer} buffer
+   */
+  static cryptTop10 (buffer) {
+    let output = Buffer.from(buffer) // copy buffer to not modify reference?
+    let ebp8 = 0x15
+    let ebp10 = 0x2637
+
+    // TODO: fix so actually work.....
+    for (let i = 0; i < 344; i++) {
+      output[i] ^= ebp8 & 0xFF
+      ebp10 = ebp10 + ((ebp8 % 0xD3D) * 0xD3D)
+      ebp8 = ebp10 * 0x1F + 0xD3D
+    }
+
+    return output
+  }
+
+  /**
+   * Parses top10 list data and returns array with times.
+   * @param {Buffer} buffer
+   * @returns {Array} times
+   */
+  _parseTop10 (buffer) {
+    let top10Count = buffer.readInt32LE()
+    let output = []
+    for (let i = 0; i < top10Count; i++) {
+      console.log(i)
+      let timeOffset = 4 + i * 4
+      let timeEnd = timeOffset + 4
+      let nameOneOffset = 44 + i * 15
+      let nameOneEnd = nameOneOffset + 15
+      let nameTwoOffset = 194 + i * 15
+      let nameTwoEnd = nameTwoOffset + 15
+      let entry = {}
+      entry.time = buffer.slice(timeOffset, timeEnd).readInt32LE()
+      entry.name1 = trimString(buffer.slice(nameOneOffset, nameOneEnd))
+      entry.name2 = trimString(buffer.slice(nameTwoOffset, nameTwoEnd))
+      output.push(entry)
+    }
+    return output
   }
 
   /**
