@@ -5,7 +5,7 @@ const Replay = require('../src').Replay
 /* * * * * * * *
  * Level tests *
  * * * * * * * */
-test('Valid level 1: load() returns instance of Level', t => {
+test('Valid level 1: load() parses level correctly', t => {
   t.plan(68)
 
   return Level.load('lev_valid_1.lev').then(result => {
@@ -80,11 +80,24 @@ test('Valid level 1: load() returns instance of Level', t => {
   }).catch(error => t.fail(error.Error))
 })
 
-test('Valid level 2: load() returns instance of Level', t => {
-  t.plan(1)
+test('Valid level 2: load() parses level correctly', t => {
+  t.plan(14)
 
   return Level.load('lev_valid_2.lev').then(result => {
     t.true(result instanceof Level)
+    t.is(result.version, 'Elma')
+    t.is(result.link, 1505288190)
+    t.is(result.name, '')
+    t.is(result.ground, 'brick')
+    t.is(result.sky, 'ground')
+    t.is(result.polygons.length, 5)
+    t.is(result.polygons[0].grass, false)
+    t.is(result.polygons[0].vertices.length, 4)
+    t.is(result.polygons[0].vertices[0].x, 18.507991950076164)
+    t.is(result.polygons[0].vertices[1].y, 17.978810742022475)
+    t.is(result.objects.length, 17)
+    t.is(result.pictures.length, 3)
+    t.is(result.top10.single.length, 0)
   }).catch(error => t.fail(error.Error))
 })
 
@@ -106,8 +119,6 @@ test.skip('Level save() method without modifications matches original level', t 
   t.true(level.save())
 })
 
-test.todo('read level file')
-test.todo('check all level attributes with 3+ levels')
 test.todo('save level and check against original')
 
 /* * * * * * * * *
