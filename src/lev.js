@@ -165,6 +165,42 @@ class Level {
         this.objects.push(object)
       }
 
+      // pictures
+      let picCount = buffer.readDoubleLE(offset) - 0.2345672
+      offset += 8
+      for (let i = 0; i < picCount; i++) {
+        let picture = {}
+        picture.name = trimString(buffer.slice(offset, offset + 10))
+        offset += 10
+        picture.texture = trimString(buffer.slice(offset, offset + 10))
+        offset += 10
+        picture.mask = trimString(buffer.slice(offset, offset + 10))
+        offset += 10
+        picture.x = buffer.readDoubleLE(offset)
+        offset += 8
+        picture.y = buffer.readDoubleLE(offset)
+        offset += 8
+        picture.distance = buffer.readInt32LE(offset)
+        offset += 4
+        let clip = buffer.readInt32LE(offset)
+        offset += 4
+        switch (clip) {
+          case 0:
+            picture.clip = 'unclipped'
+            break
+          case 1:
+            picture.clip = 'ground'
+            break
+          case 2:
+            picture.clip = 'sky'
+            break
+          default:
+            reject('Invalid clip value')
+            return
+        }
+        this.pictures.push(picture)
+      }
+
       if (true) resolve(this)
       reject()
     })
