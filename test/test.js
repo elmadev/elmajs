@@ -6,7 +6,7 @@ const Replay = require('../src').Replay
  * Level tests *
  * * * * * * * */
 test('Valid level 1: load() returns instance of Level', t => {
-  t.plan(58)
+  t.plan(68)
 
   return Level.load('lev_valid_1.lev').then(result => {
     t.true(result instanceof Level)
@@ -67,6 +67,16 @@ test('Valid level 1: load() returns instance of Level', t => {
     t.is(result.pictures[1].y, -3.964829547979911)
     t.is(result.pictures[1].distance, 750)
     t.is(result.pictures[1].clip, 'sky')
+    t.is(result.top10.single.length, 10)
+    t.is(result.top10.single[0].name1, 'Rust')
+    t.is(result.top10.single[0].name2, 'Cargo')
+    t.is(result.top10.single[0].time, 201)
+    t.is(result.top10.single[2].name1, 'Cargo')
+    t.is(result.top10.single[2].name2, 'Rust')
+    t.is(result.top10.single[2].time, 206)
+    t.is(result.top10.single[9].name1, 'Rust')
+    t.is(result.top10.single[9].name2, 'Cargo')
+    t.is(result.top10.single[9].time, 308)
   }).catch(error => t.fail(error.Error))
 })
 
