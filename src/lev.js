@@ -214,8 +214,13 @@ class Level {
       this.top10.multi = this._parseTop10(top10Data.slice(344))
       offset += 688
 
-      if (true) resolve(this)
-      reject()
+      // EOF marker
+      if (buffer.readInt32LE(offset) !== 0x00845D52) {
+        reject('End of file marker error')
+        return
+      }
+
+      resolve(this)
     })
   }
 
@@ -229,11 +234,12 @@ class Level {
     let ebp8 = 0x15
     let ebp10 = 0x2637
 
-    // TODO: fix so actually work.....
-    for (let i = 0; i < 344; i++) {
+    for (let i = 0; i < 688; i++) {
       output[i] ^= ebp8 & 0xFF
-      ebp10 = ebp10 + ((ebp8 % 0xD3D) * 0xD3D)
+      // sick domi modifications to work with JS
+      ebp10 += (ebp8 % 0xD3D) * 0xD3D
       ebp8 = ebp10 * 0x1F + 0xD3D
+      ebp8 = (ebp8 & 0xFFFF) - 2 * (ebp8 & 0x8000)
     }
 
     return output
@@ -248,7 +254,6 @@ class Level {
     let top10Count = buffer.readInt32LE()
     let output = []
     for (let i = 0; i < top10Count; i++) {
-      console.log(i)
       let timeOffset = 4 + i * 4
       let timeEnd = timeOffset + 4
       let nameOneOffset = 44 + i * 15
