@@ -1,6 +1,7 @@
 const fs = require('fs')
 const DEFS = require('./const')
 const trimString = require('./util').trimString
+const nullpadString = require('./util').nullpadString
 
 /**
  * Class containing all level attributes.
@@ -275,8 +276,32 @@ class Level {
    */
   _update () {
     return new Promise((resolve, reject) => {
+      // figure out how big of a buffer to create since dynamic allocation is not a thing...
+      let bufferSize = 850 // all known level attributes' size
+      for (let i = 0; i < this.polygons.length; i++) {
+        bufferSize += 8 + 16 * this.polygons[i].vertices.length
+      }
+      bufferSize += 28 * this.objects.length
+      bufferSize += 54 * this.pictures.length
+      let buffer = Buffer.alloc(bufferSize)
+
+      if (this.version !== 'Elma') {
+        reject('Only Elma levels are supported')
+        return
+      }
+      buffer.write('POT14', 0, 'ascii')
+      buffer.writeInt16LE(this.link & 0xFFFF, 5)
+      buffer.writeUInt32LE(this.link, 7)
+      for (let i = 0; i < this.integrity.length; i++) {
+        buffer.writeDoubleLE(this.integrity[i], 11 + i * 8)
+      }
+      let name = nullpadString(this.name, 51)
+      if (!name) {
+        reject('Problem with level name') // could be problem with invalid ascii or padding
+        return
+      }
+      buffer.write(name, 43, 'ascii')
       if (true) resolve()
-      reject()
     })
   }
 
