@@ -290,7 +290,7 @@ class Level {
         return
       }
       buffer.write('POT14', 0, 'ascii')
-      buffer.writeInt16LE(this.link & 0xFFFF, 5)
+      buffer.writeUInt16LE(this.link & 0xFFFF, 5)
       buffer.writeUInt32LE(this.link, 7)
       for (let i = 0; i < this.integrity.length; i++) {
         buffer.writeDoubleLE(this.integrity[i], 11 + i * 8)
@@ -301,7 +301,135 @@ class Level {
         return
       }
       buffer.write(name, 43, 'ascii')
-      if (true) resolve()
+      let lgr = nullpadString(this.lgr, 16)
+      if (!lgr) {
+        reject('Problem with LGR name') // definitely do this better somehow... maybe?
+        return
+      }
+      buffer.write(lgr, 94, 'ascii')
+      let ground = nullpadString(this.ground, 10)
+      if (!ground) {
+        reject('Problem with ground name')
+        return
+      }
+      buffer.write(ground, 110, 'ascii')
+      let sky = nullpadString(this.sky, 10)
+      if (!sky) {
+        reject('Problem with sky name')
+        return
+      }
+      buffer.write(sky, 120, 'ascii')
+
+      buffer.writeDoubleLE(this.polygons.length + 0.4643643, 130)
+      let offset = 138 // unknown territory, time to keep track of offset!
+      this.polygons.forEach(polygon => {
+        buffer.writeInt32LE(polygon.grass ? 1 : 0, offset)
+        offset += 4
+        buffer.writeInt32LE(polygon.vertices.length, offset)
+        offset += 4
+        polygon.vertices.forEach(vertex => {
+          buffer.writeDoubleLE(vertex.x, offset)
+          offset += 8
+          buffer.writeDoubleLE(vertex.y, offset)
+          offset += 8
+        })
+      })
+
+      buffer.writeDoubleLE(this.objects.length + 0.4643643, offset)
+      offset += 8
+      this.objects.forEach(object => {
+        let objectType
+        let gravity = 0
+        let animation = 0
+        switch (object.type) {
+          case 'exit':
+            objectType = 1
+            break
+          case 'apple':
+            objectType = 2
+            switch (object.gravity) {
+              case 'normal':
+                gravity = 0
+                break
+              case 'up':
+                gravity = 1
+                break
+              case 'down':
+                gravity = 2
+                break
+              case 'left':
+                gravity = 3
+                break
+              case 'right':
+                gravity = 4
+                break
+              default:
+                reject('Object missing or invalid gravity parameter')
+                return
+            }
+            animation = object.animation - 1
+            break
+          case 'killer':
+            objectType = 3
+            break
+          case 'start':
+            objectType = 4
+            break
+          default:
+            reject('Invalid object value')
+            return
+        }
+        buffer.writeDoubleLE(object.x, offset)
+        offset += 8
+        buffer.writeDoubleLE(object.y, offset)
+        offset += 8
+        buffer.writeInt32LE(objectType, offset)
+        offset += 4
+        buffer.writeInt32LE(gravity, offset)
+        offset += 4
+        buffer.writeInt32LE(animation, offset)
+        offset += 4
+      })
+
+      this.pictures.forEach(picture => {
+        let name = nullpadString(picture.name, 10)
+        buffer.write(name, offset, 'ascii')
+        offset += 10
+        let texture = nullpadString(picture.texture, 10)
+        buffer.write(texture, offset, 'ascii')
+        offset += 10
+        let mask = nullpadString(picture.mask, 10)
+        buffer.write(mask, offset, 'ascii')
+        offset += 10
+        buffer.writeDoubleLE(picture.x, offset)
+        offset += 8
+        buffer.writeDoubleLE(picture.y, offset)
+        offset += 8
+        buffer.writeInt32LE(picture.distance, offset)
+        offset += 4
+        let clip
+        switch (picture.clip) {
+          case 'unclipped':
+            clip = 0
+            break
+          case 'ground':
+            clip = 1
+            break
+          case 'sky':
+            clip = 2
+            break
+          default:
+            reject('Invalid clip value')
+            return
+        }
+        buffer.writeInt32LE(clip, offset)
+        offset += 4
+      })
+
+      buffer.writeInt32LE(0x0067103A, offset)
+      offset += 4
+
+      if (true) resolve(buffer)
     })
   }
 
