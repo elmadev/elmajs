@@ -281,8 +281,7 @@ class Level {
       for (let i = 0; i < this.polygons.length; i++) {
         bufferSize += 8 + 16 * this.polygons[i].vertices.length
       }
-      bufferSize += 28 * this.objects.length
-      bufferSize += 54 * this.pictures.length
+      bufferSize += (28 * this.objects.length) + (54 * this.pictures.length)
       let buffer = Buffer.alloc(bufferSize)
 
       if (this.version !== 'Elma') {
@@ -391,6 +390,8 @@ class Level {
         offset += 4
       })
 
+      buffer.writeDoubleLE(this.pictures.length + 0.2345672, offset)
+      offset += 8
       this.pictures.forEach(picture => {
         let name = nullpadString(picture.name, 10)
         buffer.write(name, offset, 'ascii')
@@ -428,13 +429,48 @@ class Level {
 
       buffer.writeInt32LE(0x0067103A, offset)
       offset += 4
+      this._top10ToBuffer().copy(buffer, offset)
+      offset += 688
+      buffer.writeInt32LE(0x00845D52, offset)
 
-      if (true) resolve(buffer)
+      resolve(buffer)
     })
   }
 
   /**
-   * Toplogy check.
+   * Parse top10 lists from Level class and return buffer with data.
+   * @returns {Buffer} buffer
+   */
+  _top10ToBuffer () {
+    let self = this
+    function parse (multi) {
+      let list = multi ? 'multi' : 'single'
+      self.top10[list].sort((a, b) => {
+        if (a.time > b.time) return 1
+        if (a.time < b.time) return -1
+        return 0
+      })
+      let buffer = Buffer.alloc(344)
+      buffer.writeUInt32LE(self.top10[list].length >= 10 ? 10 : self.top10[list].length)
+
+      for (let i = 0; i < self.top10[list].length; i++) {
+        if (i < 10) {
+          buffer.writeUInt32LE(self.top10[list][i].time, 4 + 4 * i)
+          buffer.write(nullpadString(self.top10[list][i].name1, 15), 44 + 15 * i)
+          buffer.write(nullpadString(self.top10[list][i].name2, 15), 194 + 15 * i)
+        }
+      }
+
+      return buffer
+    }
+
+    let single = parse(false)
+    let multi = parse(true)
+    return Level.cryptTop10(Buffer.concat([single, multi], 688))
+  }
+
+  /**
+   * Topology check.
    * @returns {Promise} Promise
    */
   _checkTopology () {
@@ -449,10 +485,7 @@ class Level {
    * @returns {Promise} Promise
    */
   toBuffer () {
-    return new Promise((resolve, reject) => {
-      if (true) resolve()
-      reject()
-    })
+    return this._update()
   }
 
   /**
@@ -469,7 +502,15 @@ class Level {
    * @returns {Promise} Promise
    */
   save (filePath) {
-    return new Promise()
+    return new Promise((resolve, reject) => {
+      if (!filePath) reject('No filepath specified')
+      this._update().then(buffer => {
+        fs.writeFile(filePath, buffer, error => {
+          if (error) reject(error)
+          resolve()
+        })
+      }).catch(error => reject(error))
+    })
   }
 }
 

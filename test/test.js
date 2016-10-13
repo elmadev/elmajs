@@ -113,13 +113,100 @@ test('Garbage invalid level: load() returns error', t => {
   return Level.load('lev_invalid_1.lev').then(result => t.fail()).catch(error => t.pass(error))
 })
 
-test.skip('Level save() method without modifications matches original level', t => {
+test('Generate link returns a number at least', t => {
   t.plan(1)
-  let level = Level.load()
-  t.true(level.save())
+  return Level.load('lev_valid_1.lev').then(result => {
+    result.generateLink()
+    t.true(typeof result.link === 'number')
+  }).catch(error => t.fail(error))
 })
 
-test.todo('save level and check against original')
+test('Level toBuffer() returns buffer with valid data', t => {
+  t.plan(11)
+  return Level.load('lev_valid_1.lev').then(result => {
+    return result.toBuffer().then(buffer => {
+      t.is(buffer[0], 0x50)
+      t.is(buffer[180], 0x0A)
+      t.is(buffer[227], 0x8A)
+      t.is(buffer[341], 0x00)
+      t.is(buffer[768], 0x41)
+      t.is(buffer[919], 0xAF)
+      t.is(buffer[1017], 0x1D)
+      t.is(buffer[1097], 0x90)
+      t.is(buffer[1125], 0x21)
+      t.is(buffer[1224], 0x38)
+      t.is(buffer[1325], 0x00)
+    }).catch(error => t.fail(error))
+  }).catch(error => t.fail(error))
+})
+
+test('Level save() without argument returns error', t => {
+  t.plan(1)
+  return Level.load('lev_valid_1.lev').then(result => {
+    return result.save().then(_ => {
+      t.fail('Should not save')
+    }).catch(error => t.pass(error))
+  }).catch(error => t.fail(error))
+})
+
+test('Level save() method without modifications matches original level', t => {
+  t.plan(49)
+  return Level.load('lev_valid_1.lev').then(original => {
+    return original.save('../temp/save_lev_valid_1.lev').then(_ => {
+      return Level.load('../temp/save_lev_valid_1.lev').then(saved => {
+        t.is(original.link, saved.link)
+        t.is(original.integrity[0], saved.integrity[0])
+        t.is(original.integrity[1], saved.integrity[1])
+        t.is(original.integrity[2], saved.integrity[2])
+        t.is(original.integrity[3], saved.integrity[3])
+        t.is(original.name, saved.name)
+        t.is(original.lgr, saved.lgr)
+        t.is(original.ground, saved.ground)
+        t.is(original.sky, saved.sky)
+        t.is(original.polygons.length, saved.polygons.length)
+        t.is(original.polygons[0].grass, saved.polygons[0].grass)
+        t.is(original.polygons[0].vertices[0].x, saved.polygons[0].vertices[0].x)
+        t.is(original.polygons[0].vertices[1].y, saved.polygons[0].vertices[1].y)
+        t.is(original.polygons[0].vertices[2].x, saved.polygons[0].vertices[2].x)
+        t.is(original.polygons[0].vertices[3].y, saved.polygons[0].vertices[3].y)
+        t.is(original.polygons[1].grass, saved.polygons[1].grass)
+        t.is(original.polygons[1].vertices[0].y, saved.polygons[1].vertices[0].y)
+        t.is(original.polygons[1].vertices[1].x, saved.polygons[1].vertices[1].x)
+        t.is(original.polygons[1].vertices[3].y, saved.polygons[1].vertices[3].y)
+        t.is(original.objects.length, saved.objects.length)
+        t.is(original.objects[0].x, saved.objects[0].x)
+        t.is(original.objects[0].type, saved.objects[0].type)
+        t.is(original.objects[1].y, saved.objects[1].y)
+        t.is(original.objects[1].type, saved.objects[1].type)
+        t.is(original.objects[1].animation, saved.objects[1].animation)
+        t.is(original.objects[1].gravity, saved.objects[1].gravity)
+        t.is(original.objects[4].y, saved.objects[4].y)
+        t.is(original.objects[4].gravity, saved.objects[4].gravity)
+        t.is(original.objects[6].x, saved.objects[6].x)
+        t.is(original.objects[6].type, saved.objects[6].type)
+        t.is(original.objects[7].type, saved.objects[7].type)
+        t.is(original.pictures.length, saved.pictures.length)
+        t.is(original.pictures[0].name, saved.pictures[0].name)
+        t.is(original.pictures[0].texture, saved.pictures[0].texture)
+        t.is(original.pictures[0].y, saved.pictures[0].y)
+        t.is(original.pictures[0].distance, saved.pictures[0].distance)
+        t.is(original.pictures[0].clip, saved.pictures[0].clip)
+        t.is(original.pictures[1].name, saved.pictures[1].name)
+        t.is(original.pictures[1].texture, saved.pictures[1].texture)
+        t.is(original.pictures[1].mask, saved.pictures[1].mask)
+        t.is(original.pictures[1].x, saved.pictures[1].x)
+        t.is(original.top10.single.length, saved.top10.single.length)
+        t.is(original.top10.single[0].name2, saved.top10.single[0].name2)
+        t.is(original.top10.single[0].time, saved.top10.single[0].time)
+        t.is(original.top10.single[2].name1, saved.top10.single[2].name1)
+        t.is(original.top10.single[2].time, saved.top10.single[2].time)
+        t.is(original.top10.single[9].name1, saved.top10.single[9].name1)
+        t.is(original.top10.single[9].name2, saved.top10.single[9].name2)
+        t.is(original.top10.single[9].time, saved.top10.single[9].time)
+      }).catch(error => t.fail(error))
+    }).catch(error => t.fail(error.Error))
+  }).catch(error => t.fail(error))
+})
 
 /* * * * * * * * *
  * Replay tests  *
