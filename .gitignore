@@ -38,3 +38,6 @@ jspm_packages
 
 # dev test file
 dev-test.js
+
+# temp test files
+temp
