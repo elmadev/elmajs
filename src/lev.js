@@ -9,6 +9,10 @@ const nullpadString = require('./util').nullpadString
  * let level = new Level()
  */
 class Level {
+  /**
+  * Represents a level.
+  * @constructor
+  */
   constructor () {
     this.version = 'Elma'
     this.link = 0
@@ -29,8 +33,9 @@ class Level {
 
   /**
    * Loads a level from file.
+   * @static
    * @param {string} filePath Path to file
-   * @returns {Promise} Promise
+   * @returns {Promise}
    */
   static load (filePath) {
     return new Promise((resolve, reject) => {
@@ -47,7 +52,8 @@ class Level {
 
   /**
    * Parses file buffer data into a Level.
-   * @returns {Promise} Promise
+   * @private
+   * @returns {Promise}
    */
   _parseFile (buffer) {
     return new Promise((resolve, reject) => {
@@ -229,8 +235,9 @@ class Level {
 
   /**
    * Encrypts and decrypts top10 list data.
+   * @static
    * @param {Buffer} buffer Data to encrypt or decrypt
-   * @returns {Buffer} buffer
+   * @returns {Buffer} Buffer with binary data
    */
   static cryptTop10 (buffer) {
     let output = Buffer.from(buffer) // copy buffer to not modify reference?
@@ -250,6 +257,7 @@ class Level {
 
   /**
    * Parses top10 list data and returns array with times.
+   * @private
    * @param {Buffer} buffer
    * @returns {Array} times
    */
@@ -274,7 +282,8 @@ class Level {
 
   /**
    * Internal convinience method.
-   * @returns {Promise} Promise
+   * @private
+   * @returns {Promise}
    */
   _update () {
     return new Promise((resolve, reject) => {
@@ -441,6 +450,7 @@ class Level {
 
   /**
    * Parse top10 lists from Level class and return buffer with data.
+   * @private
    * @returns {Buffer} buffer
    */
   _top10ToBuffer () {
@@ -473,9 +483,9 @@ class Level {
 
   /**
    * Topology check.
-   * @returns {Promise} Promise
+   * @returns {Promise}
    */
-  _checkTopology () {
+  checkTopology () {
     return new Promise((resolve, reject) => {
       resolve()
       reject()
@@ -484,7 +494,7 @@ class Level {
 
   /**
    * Returns level as buffer data.
-   * @returns {Promise} Promise
+   * @returns {Promise}
    */
   toBuffer () {
     return this._update()
@@ -501,7 +511,7 @@ class Level {
   /**
    * Saves a level to file.
    * @param {string} filePath Path to file
-   * @returns {Promise} Promise
+   * @returns {Promise}
    */
   save (filePath) {
     return new Promise((resolve, reject) => {
