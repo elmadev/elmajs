@@ -5,4 +5,4 @@ node_js:
 before_script:
   - mkdir temp
 after_success:
-  - npm run report-coverage
+  - npm run coverage
