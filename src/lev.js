@@ -5,6 +5,8 @@ const nullpadString = require('./util').nullpadString
 
 /**
  * Class containing all level attributes.
+ * @example
+ * let level = new Level()
  */
 class Level {
   constructor () {
@@ -475,7 +477,7 @@ class Level {
    */
   _checkTopology () {
     return new Promise((resolve, reject) => {
-      if (true) resolve()
+      resolve()
       reject()
     })
   }
