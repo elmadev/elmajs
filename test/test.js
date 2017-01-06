@@ -8,7 +8,7 @@ const Replay = require('../src').Replay
 test('Valid level 1: load() parses level correctly', t => {
   t.plan(68)
 
-  return Level.load('test/lev_valid_1.lev').then(result => {
+  return Level.load('test/assets/levels/lev_valid_1.lev').then(result => {
     t.true(result instanceof Level)
     t.is(result.version, 'Elma')
     t.is(result.link, 1524269776)
@@ -83,7 +83,7 @@ test('Valid level 1: load() parses level correctly', t => {
 test('Valid level 2: load() parses level correctly', t => {
   t.plan(14)
 
-  return Level.load('test/lev_valid_2.lev').then(result => {
+  return Level.load('test/assets/levels/lev_valid_2.lev').then(result => {
     t.true(result instanceof Level)
     t.is(result.version, 'Elma')
     t.is(result.link, 1505288190)
@@ -104,18 +104,18 @@ test('Valid level 2: load() parses level correctly', t => {
 test('Across level: load() returns error', t => {
   t.plan(1)
 
-  return Level.load('test/lev_across.lev').then(result => t.fail()).catch(error => t.pass(error))
+  return Level.load('test/assets/levels/lev_across.lev').then(result => t.fail()).catch(error => t.pass(error))
 })
 
 test('Garbage invalid level: load() returns error', t => {
   t.plan(1)
 
-  return Level.load('test/lev_invalid_1.lev').then(result => t.fail()).catch(error => t.pass(error))
+  return Level.load('test/assets/levels/lev_invalid_1.lev').then(result => t.fail()).catch(error => t.pass(error))
 })
 
 test('Generate link returns a number at least', t => {
   t.plan(1)
-  return Level.load('test/lev_valid_1.lev').then(result => {
+  return Level.load('test/assets/levels/lev_valid_1.lev').then(result => {
     result.generateLink()
     t.true(typeof result.link === 'number')
   }).catch(error => t.fail(error))
@@ -123,7 +123,7 @@ test('Generate link returns a number at least', t => {
 
 test('Level toBuffer() returns buffer with valid data', t => {
   t.plan(11)
-  return Level.load('test/lev_valid_1.lev').then(result => {
+  return Level.load('test/assets/levels/lev_valid_1.lev').then(result => {
     return result.toBuffer().then(buffer => {
       t.is(buffer[0], 0x50)
       t.is(buffer[180], 0x0A)
@@ -142,7 +142,7 @@ test('Level toBuffer() returns buffer with valid data', t => {
 
 test('Level save() without argument returns error', t => {
   t.plan(1)
-  return Level.load('test/lev_valid_1.lev').then(result => {
+  return Level.load('test/assets/levels/lev_valid_1.lev').then(result => {
     return result.save().then(_ => {
       t.fail('Should not save')
     }).catch(error => t.pass(error))
@@ -151,7 +151,7 @@ test('Level save() without argument returns error', t => {
 
 test('Level save() method without modifications matches original level', t => {
   t.plan(49)
-  return Level.load('test/lev_valid_1.lev').then(original => {
+  return Level.load('test/assets/levels/lev_valid_1.lev').then(original => {
     return original.save('temp/save_lev_valid_1.lev').then(_ => {
       return Level.load('temp/save_lev_valid_1.lev').then(saved => {
         t.is(original.link, saved.link)
@@ -214,7 +214,7 @@ test('Level save() method without modifications matches original level', t => {
 test('Replay load() static method returns instance of Replay', t => {
   t.plan(1)
 
-  return Replay.load('test/rec_valid_1.rec').then(result => {
+  return Replay.load('test/assets/replays/rec_valid_1.rec').then(result => {
     t.true(result instanceof Replay)
   }).catch(error => t.fail(error.Error))
 })
