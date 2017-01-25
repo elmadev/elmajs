@@ -211,10 +211,26 @@ test('Level save() method without modifications matches original level', t => {
 /* * * * * * * * *
  * Replay tests  *
  * * * * * * * * */
-test('Replay load() static method returns instance of Replay', t => {
+test('Valid replay 1: load() parses level correctly', t => {
   t.plan(1)
 
   return Replay.load('test/assets/replays/rec_valid_1.rec').then(result => {
+    t.true(result instanceof Replay)
+  }).catch(error => t.fail(error.Error))
+})
+
+test('Valid replay 2: load() parses level correctly', t => {
+  t.plan(1)
+
+  return Replay.load('test/assets/replays/rec_valid_2.rec').then(result => {
+    t.true(result instanceof Replay)
+  }).catch(error => t.fail(error.Error))
+})
+
+test('Valid replay 3: load() parses level correctly', t => {
+  t.plan(1)
+
+  return Replay.load('test/assets/replays/rec_valid_3.rec').then(result => {
     t.true(result instanceof Replay)
   }).catch(error => t.fail(error.Error))
 })
