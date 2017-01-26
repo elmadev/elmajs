@@ -7,10 +7,14 @@ const HEAD_RADIUS = 0.238
 const OBJECT_DIAMETER = 0.8
 const OBJECT_RADIUS = 0.4
 
+// Markers
+const EOR_MARKER = 0x00492F75 // replay marker
+
 module.exports = {
   TOP10,
   HEAD_DIAMETER,
   HEAD_RADIUS,
   OBJECT_DIAMETER,
-  OBJECT_RADIUS
+  OBJECT_RADIUS,
+  EOR_MARKER
 }
