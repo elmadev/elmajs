@@ -235,8 +235,6 @@ test('Valid replay 3: load() parses level correctly', t => {
   }).catch(error => t.fail(error.Error))
 })
 
-test.todo('read replay file')
-test.todo('reject Across replays')
 test.todo('check all replay attributes with 3+ replays')
 test.todo('save replay and check against original')
 

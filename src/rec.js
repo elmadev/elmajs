@@ -84,7 +84,7 @@ class Replay {
         offset += 16 * numEvents
         let expected = buffer.readInt32LE(offset)
         if (expected !== EOR_MARKER) {
-          reject('End of replay marker mismatch')
+          reject('End of multi-replay marker mismatch')
           return
         }
       }
@@ -103,7 +103,7 @@ class Replay {
   static _parseFrames (buffer, numFrames) {
     let frames = []
     for (let i = 0; i < numFrames; i++) {
-      let data = buffer.readUint8(i + (numFrames * 23)) // read in data field first to process it
+      let data = buffer.readUInt8(i + (numFrames * 23)) // read in data field first to process it
       let frame = {
         bike_x: buffer.readFloatLE(i * 4),
         bike_y: buffer.readFloatLE((i * 4) + (numFrames * 4)),
@@ -114,8 +114,8 @@ class Replay {
         head_x: buffer.readInt16LE((i * 2) + (numFrames * 16)),
         head_y: buffer.readInt16LE((i * 2) + (numFrames * 18)),
         rotation: buffer.readInt16LE((i * 2) + (numFrames * 20)),
-        left_rotation: buffer.readUint8(i + (numFrames * 21)),
-        right_rotation: buffer.readUint8(i + (numFrames * 22)),
+        left_rotation: buffer.readUInt8(i + (numFrames * 21)),
+        right_rotation: buffer.readUInt8(i + (numFrames * 22)),
         throttle: data & 1 !== 0,
         right: data & (1 << 1) !== 0,
         volume: buffer.readInt16LE((i * 2) + (numFrames * 25))
@@ -141,7 +141,7 @@ class Replay {
       offset += 8
       event.info = buffer.readInt16LE(offset)
       offset += 2
-      let eventType = buffer.readUint8(offset)
+      let eventType = buffer.readUInt8(offset)
       offset += 6 // 1 + 5 unknown bytes
       switch (eventType) {
         case 0:
