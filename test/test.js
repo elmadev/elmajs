@@ -21,13 +21,13 @@ test('Valid level 1: load() parses level correctly', t => {
     t.is(result.ground, 'ground')
     t.is(result.sky, 'sky')
     t.is(result.polygons.length, 2)
-    t.is(result.polygons[0].grass, false)
+    t.false(result.polygons[0].grass)
     t.is(result.polygons[0].vertices[0].x, -23.993693053024586)
     t.is(result.polygons[0].vertices[1].y, -3.135779367971911)
     t.is(result.polygons[0].vertices[2].y, 1.995755366905195)
     t.is(result.polygons[0].vertices[2].x, -15.989070625361132)
     t.is(result.polygons[0].vertices[3].y, 2)
-    t.is(result.polygons[1].grass, true)
+    t.true(result.polygons[1].grass)
     t.is(result.polygons[1].vertices[0].y, 2.310222676563402)
     t.is(result.polygons[1].vertices[1].x, -17.60428907951465)
     t.is(result.polygons[1].vertices[2].y, 1.8956975865594021)
@@ -91,7 +91,7 @@ test('Valid level 2: load() parses level correctly', t => {
     t.is(result.ground, 'brick')
     t.is(result.sky, 'ground')
     t.is(result.polygons.length, 5)
-    t.is(result.polygons[0].grass, false)
+    t.false(result.polygons[0].grass)
     t.is(result.polygons[0].vertices.length, 4)
     t.is(result.polygons[0].vertices[0].x, 18.507991950076164)
     t.is(result.polygons[0].vertices[1].y, 17.978810742022475)
@@ -211,27 +211,106 @@ test('Level save() method without modifications matches original level', t => {
 /* * * * * * * * *
  * Replay tests  *
  * * * * * * * * */
-test('Valid replay 1: load() parses level correctly', t => {
-  t.plan(1)
+test('Valid replay 1: load() parses replay correctly', t => {
+  t.plan(15)
 
   return Replay.load('test/assets/replays/rec_valid_1.rec').then(result => {
     t.true(result instanceof Replay)
+    t.false(result.multi)
+    t.false(result.flagTag)
+    t.is(result.link, 2549082363)
+    t.is(result.level, 'tutor14.lev')
+    t.is(result.frames[0].length, 440)
+    // few random frames
+    t.deepEqual(result.frames[0][0],
+      {
+        bike: { x: 34.3025016784668, y: -1.1253118515014648 },
+        leftWheel: { x: -850, y: -524 },
+        rightWheel: { x: 849, y: -524 },
+        head: { x: 0, y: 439 },
+        rotation: 10000,
+        leftRotation: 250,
+        rightRotation: 0,
+        throttle: true,
+        right: false,
+        volume: 5120
+      })
+    t.deepEqual(result.frames[0][100],
+      {
+        bike: { x: 27.14251708984375, y: -1.1152113676071167 },
+        leftWheel: { x: -903, y: -514 },
+        rightWheel: { x: 586, y: -534 },
+        head: { x: 74, y: 397 },
+        rotation: 9826,
+        leftRotation: 248,
+        rightRotation: 238,
+        throttle: true,
+        right: false,
+        volume: -5398
+      })
+    t.deepEqual(result.frames[0][201],
+      {
+        bike: { x: 11.071295738220215, y: 2.8753623962402344 },
+        leftWheel: { x: -511, y: 917 },
+        rightWheel: { x: -692, y: -789 },
+        head: { x: 471, y: 10 },
+        rotation: 7325,
+        leftRotation: 25,
+        rightRotation: 23,
+        throttle: true,
+        right: false,
+        volume: -5398
+      })
+    t.deepEqual(result.frames[0][439],
+      {
+        bike: { x: -34.77971267700195, y: 11.52646541595459 },
+        leftWheel: { x: -1050, y: -33 },
+        rightWheel: { x: 286, y: -757 },
+        head: { x: 226, y: 376 },
+        rotation: 9047,
+        leftRotation: 73,
+        rightRotation: 163,
+        throttle: true,
+        right: false,
+        volume: 5652
+      })
+    // some random events
+    t.is(result.events[0].length, 24)
+    t.deepEqual(result.events[0][0], { time: 1.57728480001688, info: -1, eventType: 'voltRight' })
+    t.deepEqual(result.events[0][1], { time: 1.6974048000097273, info: -1, eventType: 'ground1' })
+    t.deepEqual(result.events[0][11], { time: 3.9464880000114437, info: -1, eventType: 'voltLeft' })
+    t.deepEqual(result.events[0][23], { time: 6.398683200001716, info: 3, eventType: 'apple' })
   }).catch(error => t.fail(error.Error))
 })
 
-test('Valid replay 2: load() parses level correctly', t => {
-  t.plan(1)
+test('Valid multi-replay 1: load() parses replay correctly', t => {
+  // t.plan(1)
 
   return Replay.load('test/assets/replays/rec_valid_2.rec').then(result => {
     t.true(result instanceof Replay)
-  }).catch(error => t.fail(error.Error))
-})
-
-test('Valid replay 3: load() parses level correctly', t => {
-  t.plan(1)
-
-  return Replay.load('test/assets/replays/rec_valid_3.rec').then(result => {
-    t.true(result instanceof Replay)
+    t.true(result.multi)
+    t.false(result.flagTag)
+    t.is(result.link, 2549082363)
+    t.is(result.level, 'tutor14.lev')
+    t.is(result.frames[0].length, 440)
+    t.deepEqual(result.frames[0][439],
+      {
+        bike: { x: -34.77971267700195, y: 11.52646541595459 },
+        leftWheel: { x: -1050, y: -33 },
+        rightWheel: { x: 286, y: -757 },
+        head: { x: 226, y: 376 },
+        rotation: 9047,
+        leftRotation: 73,
+        rightRotation: 163,
+        throttle: true,
+        right: false,
+        volume: 5652
+      })
+    t.is(result.events[0].length, 24)
+    t.is(result.frames[1].length, 441)
+    t.is(result.frames[1][100].bike.x, 27.138593673706055)
+    t.is(result.frames[1][0].bike.y, -1.1253118515014648)
+    t.is(result.events[1].length, 23)
   }).catch(error => t.fail(error.Error))
 })
 
