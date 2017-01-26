@@ -17,6 +17,7 @@ class Replay {
 
   /**
    * Loads a replay from file.
+   * @static
    * @param {string} filePath Path to file
    * @returns {Promise} Promise
    */
@@ -96,6 +97,7 @@ class Replay {
   /**
    * Parses frame data into an array of frame objects.
    * @private
+   * @static
    * @param {Buffer} buffer Frame data to parse.
    * @param {Number} numFrames Number of frames to parse.
    * @returns {Array}
@@ -103,21 +105,17 @@ class Replay {
   static _parseFrames (buffer, numFrames) {
     let frames = []
     for (let i = 0; i < numFrames; i++) {
-      let data = buffer.readUInt8(i + (numFrames * 23)) // read in data field first to process it
+      let data = buffer.readUInt8(i + (numFrames * 24)) // read in data field first to process it
       let frame = {
-        bike_x: buffer.readFloatLE(i * 4),
-        bike_y: buffer.readFloatLE((i * 4) + (numFrames * 4)),
-        left_x: buffer.readInt16LE((i * 2) + (numFrames * 8)),
-        left_y: buffer.readInt16LE((i * 2) + (numFrames * 10)),
-        right_x: buffer.readInt16LE((i * 2) + (numFrames * 12)),
-        right_y: buffer.readInt16LE((i * 2) + (numFrames * 14)),
-        head_x: buffer.readInt16LE((i * 2) + (numFrames * 16)),
-        head_y: buffer.readInt16LE((i * 2) + (numFrames * 18)),
+        bike: { x: buffer.readFloatLE(i * 4), y: buffer.readFloatLE((i * 4) + (numFrames * 4)) },
+        leftWheel: { x: buffer.readInt16LE((i * 2) + (numFrames * 8)), y: buffer.readInt16LE((i * 2) + (numFrames * 10)) },
+        rightWheel: { x: buffer.readInt16LE((i * 2) + (numFrames * 12)), y: buffer.readInt16LE((i * 2) + (numFrames * 14)) },
+        head: { x: buffer.readInt16LE((i * 2) + (numFrames * 16)), y: buffer.readInt16LE((i * 2) + (numFrames * 18)) },
         rotation: buffer.readInt16LE((i * 2) + (numFrames * 20)),
-        left_rotation: buffer.readUInt8(i + (numFrames * 21)),
-        right_rotation: buffer.readUInt8(i + (numFrames * 22)),
-        throttle: data & 1 !== 0,
-        right: data & (1 << 1) !== 0,
+        leftRotation: buffer.readUInt8(i + (numFrames * 22)),
+        rightRotation: buffer.readUInt8(i + (numFrames * 23)),
+        throttle: (data & 1) !== 0,
+        right: (data & (1 << 1)) !== 0,
         volume: buffer.readInt16LE((i * 2) + (numFrames * 25))
       }
       frames.push(frame)
@@ -128,6 +126,7 @@ class Replay {
   /**
    * Parses event data into an array of event objects.
    * @private
+   * @static
    * @param {Buffer} buffer Event data to parse.
    * @param {Number} numEvents Number of events to parse.
    * @returns {Array}
