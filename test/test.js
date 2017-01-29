@@ -314,8 +314,32 @@ test('Valid multi-replay 1: load() parses replay correctly', t => {
   }).catch(error => t.fail(error.Error))
 })
 
+test('Replay save() without argument returns error', t => {
+  t.plan(1)
+  return Replay.load('test/assets/replays/rec_valid_1.rec').then(result => {
+    return result.save().then(_ => {
+      t.fail('Should not save')
+    }).catch(error => t.pass(error))
+  }).catch(error => t.fail(error))
+})
+
+test('Replay save() method without modifications matches original replay', t => {
+  return Replay.load('test/assets/replays/rec_valid_1.rec').then(original => {
+    return original.save('temp/save_rec_valid_1.rec').then(_ => {
+      return Replay.load('temp/save_rec_valid_1.rec').then(saved => {
+        t.is(original.multi, saved.multi)
+        t.is(original.flagTag, saved.flagTag)
+        t.is(original.link, saved.link)
+        t.is(original.level, saved.level)
+        t.deepEqual(original.frames, saved.frames)
+        t.deepEqual(original.events, saved.events)
+      }).catch(error => t.fail(error))
+    }).catch(error => t.fail(error))
+  }).catch(error => t.fail(error))
+})
+
 test.todo('check all replay attributes with 3+ replays')
-test.todo('save replay and check against original')
+test.todo('multi-replay saving -> loading')
 
 /* * * * * * * *
  * Util tests  *
