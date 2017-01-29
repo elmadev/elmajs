@@ -2,6 +2,8 @@ const fs = require('fs')
 const DEFS = require('./const')
 const trimString = require('./util').trimString
 const nullpadString = require('./util').nullpadString
+const EOD_MARKER = require('./const').EOD_MARKER
+const EOF_MARKER = require('./const').EOF_MARKER
 
 /**
  * Class containing all level attributes.
@@ -211,7 +213,7 @@ class Level {
       }
 
       // end of data marker
-      if (buffer.readInt32LE(offset) !== 0x0067103A) {
+      if (buffer.readInt32LE(offset) !== EOD_MARKER) {
         reject('End of data marker error')
         return
       }
@@ -224,7 +226,7 @@ class Level {
       offset += 688
 
       // EOF marker
-      if (buffer.readInt32LE(offset) !== 0x00845D52) {
+      if (buffer.readInt32LE(offset) !== EOF_MARKER) {
         reject('End of file marker error')
         return
       }
@@ -438,11 +440,11 @@ class Level {
         offset += 4
       })
 
-      buffer.writeInt32LE(0x0067103A, offset)
+      buffer.writeInt32LE(EOD_MARKER, offset)
       offset += 4
       this._top10ToBuffer().copy(buffer, offset)
       offset += 688
-      buffer.writeInt32LE(0x00845D52, offset)
+      buffer.writeInt32LE(EOF_MARKER, offset)
 
       resolve(buffer)
     })

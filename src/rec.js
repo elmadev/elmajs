@@ -1,4 +1,5 @@
 const fs = require('fs')
+const nullpadString = require('./util').nullpadString
 const trimString = require('./util').trimString
 const EOR_MARKER = require('./const').EOR_MARKER
 
@@ -173,6 +174,93 @@ class Replay {
   }
 
   /**
+   * Internal convinience method.
+   * @private
+   * @param {Bool} multi Process 2nd part of multi-replay data?
+   * @returns {Promise}
+   */
+  _update (multi) {
+    return new Promise((resolve, reject) => {
+      // figure out how big of a buffer to create since dynamic allocation is not a thing...
+      let playerIndex = multi ? 1 : 0
+      let numFrames = this.frames[playerIndex].length
+      let bufferSize = 44 + (27 * numFrames) + (16 * this.events[playerIndex].length)
+      let buffer = Buffer.alloc(bufferSize)
+
+      buffer.writeUInt32LE(numFrames, 0)
+      buffer.writeUInt32LE(0x83, 4)
+      buffer.writeUInt32LE(this.multi ? 1 : 0, 8)
+      buffer.writeUInt32LE(this.flagTag ? 1 : 0, 12)
+      buffer.writeUInt32LE(this.link, 16)
+      buffer.write(nullpadString(this.level, 12), 20, 'ascii')
+      buffer.writeUInt32LE(0, 32)
+
+      for (let i = 0; i < numFrames; i++) {
+        buffer.writeFloatLE(this.frames[playerIndex][i].bike.x, 36 + (i * 4))
+        buffer.writeFloatLE(this.frames[playerIndex][i].bike.y, 36 + (i * 4) + (numFrames * 4))
+        buffer.writeInt16LE(this.frames[playerIndex][i].leftWheel.x, 36 + (i * 2) + (numFrames * 8))
+        buffer.writeInt16LE(this.frames[playerIndex][i].leftWheel.y, 36 + (i * 2) + (numFrames * 10))
+        buffer.writeInt16LE(this.frames[playerIndex][i].rightWheel.x, 36 + (i * 2) + (numFrames * 12))
+        buffer.writeInt16LE(this.frames[playerIndex][i].rightWheel.y, 36 + (i * 2) + (numFrames * 14))
+        buffer.writeInt16LE(this.frames[playerIndex][i].head.x, 36 + (i * 2) + (numFrames * 16))
+        buffer.writeInt16LE(this.frames[playerIndex][i].head.y, 36 + (i * 2) + (numFrames * 18))
+        buffer.writeInt16LE(this.frames[playerIndex][i].rotation, 36 + (i * 2) + (numFrames * 20))
+        buffer.writeUInt8(this.frames[playerIndex][i].leftRotation, 36 + i + (numFrames * 22))
+        buffer.writeUInt8(this.frames[playerIndex][i].rightRotation, 36 + i + (numFrames * 23))
+        let data = Math.floor(Math.random() * (255)) & 0xFC // generate random data for rec because why not eh?
+        if (this.frames[playerIndex][i].throttle) data |= 1
+        if (this.frames[playerIndex][i].right) data |= 2
+        buffer.writeUInt8(data, 36 + i + (numFrames * 24))
+        buffer.writeInt16LE(this.frames[playerIndex][i].volume, 36 + (i * 2) + (numFrames * 25))
+      }
+
+      // need to start keeping track of offset from now on
+      let offset = 36 + (27 * numFrames)
+
+      buffer.writeUInt32LE(this.events[playerIndex].length, offset)
+      offset += 4
+
+      this.events[playerIndex].forEach(event => {
+        buffer.writeDoubleLE(event.time, offset)
+        offset += 8
+        switch (event.eventType) {
+          case 'apple':
+            buffer.writeUInt32LE(event.info, offset)
+            buffer.writeUInt32LE(0, offset + 4)
+            break
+          case 'ground1':
+            buffer.writeUInt32LE(131071, offset)
+            buffer.writeUInt32LE(1050605825, offset + 4)
+            break
+          case 'ground2':
+            buffer.writeUInt32LE(327679, offset)
+            buffer.writeUInt32LE(1065185444, offset + 4)
+            break
+          case 'turn':
+            buffer.writeUInt32LE(393215, offset)
+            buffer.writeUInt32LE(1065185444, offset + 4)
+            break
+          case 'voltRight':
+            buffer.writeUInt32LE(458751, offset)
+            buffer.writeUInt32LE(1065185444, offset + 4)
+            break
+          case 'voltLeft':
+            buffer.writeUInt32LE(524287, offset)
+            buffer.writeUInt32LE(1065185444, offset + 4)
+            break
+          default:
+            reject('Unknown event type')
+            return
+        }
+        offset += 8
+      })
+      buffer.writeUInt32LE(EOR_MARKER, offset)
+
+      resolve(buffer)
+    })
+  }
+
+  /**
    * Get time of replay in milliseconds.
    * @param {bool} hs Return hundredths
    * @returns {Integer} time
@@ -188,7 +276,27 @@ class Replay {
    * @returns {Promise} Promise
    */
   save (filePath) {
-    return new Promise()
+    return new Promise((resolve, reject) => {
+      if (!filePath) reject('No filepath specified')
+      if (this.multi) {
+        let singleBuffer = this._update(false)
+        let multiBuffer = this._update(true)
+        Promise.all([singleBuffer, multiBuffer]).then(buffers => {
+          let combinedBuffer = Buffer.concat([buffers[0], buffers[1]])
+          fs.writeFile(filePath, combinedBuffer, error => {
+            if (error) reject(error)
+            resolve()
+          })
+        })
+      } else {
+        this._update(false).then(singleBuffer => {
+          fs.writeFile(filePath, singleBuffer, error => {
+            if (error) reject(error)
+            resolve()
+          })
+        }).catch(error => reject(error))
+      }
+    })
   }
 }
 
