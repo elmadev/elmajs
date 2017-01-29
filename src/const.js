@@ -9,6 +9,8 @@ const OBJECT_RADIUS = 0.4
 
 // Markers
 const EOR_MARKER = 0x00492F75 // replay marker
+const EOD_MARKER = 0x0067103A // level data marker
+const EOF_MARKER = 0x00845D52 // level file marker
 
 module.exports = {
   TOP10,
@@ -16,5 +18,7 @@ module.exports = {
   HEAD_RADIUS,
   OBJECT_DIAMETER,
   OBJECT_RADIUS,
-  EOR_MARKER
+  EOR_MARKER,
+  EOD_MARKER,
+  EOF_MARKER
 }
