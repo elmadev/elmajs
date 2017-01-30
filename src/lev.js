@@ -360,7 +360,7 @@ class Level {
                 gravity = 4
                 break
               default:
-                reject('Object missing or invalid gravity parameter')
+                reject('Invalid gravity')
                 return
             }
             animation = object.animation - 1
@@ -467,16 +467,16 @@ class Level {
     return Level.cryptTop10(Buffer.concat([single, multi], 688))
   }
 
-  /**
-   * Topology check.
-   * @returns {Promise}
-   */
-  checkTopology () {
-    return new Promise((resolve, reject) => {
-      resolve()
-      reject()
-    })
-  }
+  // /**
+  //  * Topology check.
+  //  * @returns {Promise}
+  //  */
+  // checkTopology () {
+  //   return new Promise((resolve, reject) => {
+  //     resolve()
+  //     reject()
+  //   })
+  // }
 
   /**
    * Returns level as buffer data.

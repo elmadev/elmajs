@@ -197,6 +197,49 @@ test('Wrong end-of-file marker value gives error', t => {
   }).catch(error => t.pass(error))
 })
 
+test('Create a level and save it', t => {
+  let level = new Level()
+  level.objects.push({ x: 0, y: 0, type: 'apple', gravity: 'down', animation: 1 })
+  level.pictures.push({ x: 10, y: 50, name: 'barrel', texture: '', mask: '', distance: 555, clip: 'unclipped' })
+  level.pictures.push({ x: 10, y: 50, name: 'barrel', texture: '', mask: '', distance: 555, clip: 'ground' })
+  level.pictures.push({ x: 10, y: 50, name: 'barrel', texture: '', mask: '', distance: 555, clip: 'sky' })
+  return level.save('temp/save_lev_constructed.lev').then(_ => {
+    t.pass('Saved')
+  }).catch(error => t.fail(error))
+})
+
+test('Invalid object value gives error', t => {
+  let level = new Level()
+  level.objects.push({ x: 0, y: 0, type: 'notactuallyanobject', gravity: '', animation: 0 })
+  return level.save('temp/save_lev_constructed_invalid_obj.lev').then(_ => {
+    t.fail('Should not save')
+  }).catch(error => t.pass(error))
+})
+
+test('Invalid gravity value gives error', t => {
+  let level = new Level()
+  level.objects.push({ x: 0, y: 0, type: 'apple', gravity: 'notvalid', animation: 0 })
+  return level.save('temp/save_lev_constructed_invalid_grav.lev').then(_ => {
+    t.fail('Should not save')
+  }).catch(error => t.pass(error))
+})
+
+test('Invalid clip value gives error', t => {
+  let level = new Level()
+  level.pictures.push({ x: 1, y: 30, name: 'barrel', texture: '', mask: '', distance: 555, clip: 'notvalidclip' })
+  return level.save('temp/save_lev_constructed_invalid_clip.lev').then(_ => {
+    t.fail('Should not save')
+  }).catch(error => t.pass(error))
+})
+
+test('Saving Across level gives error', t => {
+  let level = new Level()
+  level.version = 'Across'
+  return level.save('temp/save_across_lev.lev').then(_ => {
+    t.fail('Should not save')
+  }).catch(error => t.pass(error))
+})
+
 /* * * * * * * * *
  * Replay tests  *
  * * * * * * * * */
