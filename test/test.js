@@ -330,6 +330,12 @@ test('Replay save() method without modifications matches original multi-replay',
   }).catch(error => t.fail(error))
 })
 
+test('Invalid Replay event: load() gives error', t => {
+  return Replay.load('test/assets/replays/invalid_event.rec').then(result => {
+    t.fail('Should not load')
+  }).catch(error => t.pass(error))
+})
+
 /* * * * * * * *
  * Util tests  *
  * * * * * * * */

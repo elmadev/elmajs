@@ -163,8 +163,7 @@ class Replay {
           event.eventType = 'voltLeft'
           break
         default:
-          event.eventType = undefined
-          break
+          throw new Error('Unknown event type')
       }
 
       events.push(event)
