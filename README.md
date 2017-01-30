@@ -4,7 +4,7 @@
 Elasto Mania NPM package for working with level and replay files. Currently still under heavy development.
 
 # Install
-~~```npm install elma --save```~~ Not yet published.
+`npm install node-elma --save`
 
 # Documentation and usage
 See [https://doclets.io/elmadev/node-elma/master](https://doclets.io/elmadev/node-elma/master).
@@ -18,7 +18,7 @@ cd node-elma
 npm install #Alternatively use 'yarn' instead of 'npm install'
 ```
 3. Create your changes.
-4. ```npm test``` and make sure everything passes.
+4. `npm test` and make sure everything passes.
 5. Send a pull request!
 
 Do not modify any of the tests unless you know there is a mistake, or you need to add a new test for a new feature, or if something is missing.
