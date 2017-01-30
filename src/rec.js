@@ -145,7 +145,7 @@ class Replay {
       offset += 6 // 1 + 5 unknown bytes
       switch (eventType) {
         case 0:
-          event.eventType = 'apple'
+          event.eventType = 'touch'
           break
         case 1:
           event.eventType = 'ground1'
@@ -163,8 +163,7 @@ class Replay {
           event.eventType = 'voltLeft'
           break
         default:
-          event.eventType = undefined
-          break
+          throw new Error('Unknown event type')
       }
 
       events.push(event)
@@ -224,7 +223,7 @@ class Replay {
         buffer.writeDoubleLE(event.time, offset)
         offset += 8
         switch (event.eventType) {
-          case 'apple':
+          case 'touch':
             buffer.writeUInt32LE(event.info, offset)
             buffer.writeUInt32LE(0, offset + 4)
             break
@@ -261,13 +260,45 @@ class Replay {
   }
 
   /**
-   * Get time of replay in milliseconds.
-   * @param {bool} hs Return hundredths
-   * @returns {Integer} time
+   * @typedef {Object} Time
+   * @property {Number} Time in milliseconds
+   * @property {Bool} Finished
+   * @property {String} Reason for finished being true or false
    */
-  getTime (hs) {
-    if (hs) return 0
-    return 0
+
+  /**
+   * Get time of replay in milliseconds.
+   * @returns {Time} Time and whether replay is probably finished or not.
+   */
+  getTime () {
+    // First check if last event was a touch event in either event data.
+    let lastEvent1 = this.events[0][this.events[0].length - 1]
+    let lastEvent2 = this.events[1][this.events[1].length - 1]
+    let time1 = 0
+    let time2 = 0
+
+    if (lastEvent1 && lastEvent1.eventType === 'touch') time1 = lastEvent1.time
+    if (lastEvent2 && lastEvent2.eventType === 'touch') time2 = lastEvent2.time
+
+    // Highest frame time.
+    let frames1Length = this.frames[0].length
+    let frames2Length = this.frames[1].length
+    let frameTimeMax = (frames1Length > frames2Length ? frames1Length : frames2Length) * 33.333
+
+    // If neither had a touch event, return approximate frame time.
+    if ((lastEvent1 && lastEvent1.eventType !== 'touch') && (lastEvent2 && lastEvent2.eventType !== 'touch')) {
+      return { time: Math.round(frameTimeMax), finished: false, reason: 'notouch' }
+    }
+
+    // Set to highest event time.
+    let eventTimeMax = (time1 > time2 ? time1 : time2) * 2289.37728938
+    // If event difference to frame time is >1 frames of time, probably not finished?
+    if (frameTimeMax > (eventTimeMax + 34.333)) {
+      return { time: Math.round(frameTimeMax), finished: false, reason: 'framediff' }
+    }
+
+    // Otherwise probably finished?
+    return { time: Math.round(eventTimeMax), finished: true, reason: undefined }
   }
 
   /**

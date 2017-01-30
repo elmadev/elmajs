@@ -181,6 +181,20 @@ test('Invalid object value gives error', t => {
   }).catch(error => t.pass(error))
 })
 
+test('Wrong end-of-data marker value gives error', t => {
+  t.plan(1)
+  return Level.load('test/assets/levels/missing_EOD.lev').then(level => {
+    t.fail('Should not load')
+  }).catch(error => t.pass(error))
+})
+
+test('Wrong end-of-file marker value gives error', t => {
+  t.plan(1)
+  return Level.load('test/assets/levels/missing_EOF.lev').then(level => {
+    t.fail('Should not load')
+  }).catch(error => t.pass(error))
+})
+
 /* * * * * * * * *
  * Replay tests  *
  * * * * * * * * */
@@ -252,7 +266,7 @@ test('Valid replay 1: load() parses replay correctly', t => {
     t.deepEqual(result.events[0][0], { time: 1.57728480001688, info: -1, eventType: 'voltRight' })
     t.deepEqual(result.events[0][1], { time: 1.6974048000097273, info: -1, eventType: 'ground1' })
     t.deepEqual(result.events[0][11], { time: 3.9464880000114437, info: -1, eventType: 'voltLeft' })
-    t.deepEqual(result.events[0][23], { time: 6.398683200001716, info: 3, eventType: 'apple' })
+    t.deepEqual(result.events[0][23], { time: 6.398683200001716, info: 3, eventType: 'touch' })
   }).catch(error => t.fail(error.Error))
 })
 
@@ -300,19 +314,69 @@ test('Replay save() method without modifications matches original replay', t => 
   return Replay.load('test/assets/replays/rec_valid_1.rec').then(original => {
     return original.save('temp/save_rec_valid_1.rec').then(_ => {
       return Replay.load('temp/save_rec_valid_1.rec').then(saved => {
-        t.is(original.multi, saved.multi)
-        t.is(original.flagTag, saved.flagTag)
-        t.is(original.link, saved.link)
-        t.is(original.level, saved.level)
-        t.deepEqual(original.frames, saved.frames)
-        t.deepEqual(original.events, saved.events)
+        t.deepEqual(original, saved)
       }).catch(error => t.fail(error))
     }).catch(error => t.fail(error))
   }).catch(error => t.fail(error))
 })
 
-test.todo('check all replay attributes with 3+ replays')
-test.todo('multi-replay saving -> loading')
+test('Replay save() method without modifications matches original multi-replay', t => {
+  return Replay.load('test/assets/replays/rec_valid_2.rec').then(original => {
+    return original.save('temp/save_rec_valid_2.rec').then(_ => {
+      return Replay.load('temp/save_rec_valid_2.rec').then(saved => {
+        t.deepEqual(original, saved)
+      }).catch(error => t.fail(error))
+    }).catch(error => t.fail(error))
+  }).catch(error => t.fail(error))
+})
+
+test('Invalid Replay event: load() gives error', t => {
+  return Replay.load('test/assets/replays/invalid_event.rec').then(result => {
+    t.fail('Should not load')
+  }).catch(error => t.pass(error))
+})
+
+test('getTime, finished, single', t => {
+  return Replay.load('test/assets/replays/rec_valid_1.rec').then(result => {
+    t.deepEqual(result.getTime(), { time: 14649, finished: true, reason: undefined })
+  }).catch(error => t.fail(error))
+})
+
+test('getTime, finished, multi', t => {
+  return Replay.load('test/assets/replays/rec_valid_2.rec').then(result => {
+    t.deepEqual(result.getTime(), { time: 14671, finished: true, reason: undefined })
+  }).catch(error => t.fail(error))
+})
+
+test('getTime, unfinished, no event', t => {
+  return Replay.load('test/assets/replays/unfinished.rec').then(result => {
+    t.deepEqual(result.getTime(), { time: 533, finished: false, reason: 'framediff' })
+  }).catch(error => t.fail(error))
+})
+
+test('getTime, unfinished, single, event', t => {
+  return Replay.load('test/assets/replays/rec_valid_3.rec').then(result => {
+    t.deepEqual(result.getTime(), { time: 4767, finished: false, reason: 'framediff' })
+  }).catch(error => t.fail(error))
+})
+
+test('getTime, unfinished, multi, event', t => {
+  return Replay.load('test/assets/replays/multi_event_unfinished.rec').then(result => {
+    t.deepEqual(result.getTime(), { time: 1600, finished: false, reason: 'framediff' })
+  }).catch(error => t.fail(error))
+})
+
+test('getTime, unfinished, multi, event 2', t => {
+  return Replay.load('test/assets/replays/multi_event_unfinished_2.rec').then(result => {
+    t.deepEqual(result.getTime(), { time: 3233, finished: false, reason: 'notouch' })
+  }).catch(error => t.fail(error))
+})
+
+test('getTime, unfinished, single, event, framediff', t => {
+  return Replay.load('test/assets/replays/event_unfinished.rec').then(result => {
+    t.deepEqual(result.getTime(), { time: 8567, finished: false, reason: 'framediff' })
+  }).catch(error => t.fail(error))
+})
 
 /* * * * * * * *
  * Util tests  *
