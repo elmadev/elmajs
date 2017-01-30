@@ -308,28 +308,12 @@ class Level {
         buffer.writeDoubleLE(this.integrity[i], 11 + i * 8)
       }
       let name = nullpadString(this.name, 51)
-      if (!name) {
-        reject('Problem with level name') // could be problem with invalid ascii or padding
-        return
-      }
       buffer.write(name, 43, 'ascii')
       let lgr = nullpadString(this.lgr, 16)
-      if (!lgr) {
-        reject('Problem with LGR name') // definitely do this better somehow... maybe?
-        return
-      }
       buffer.write(lgr, 94, 'ascii')
       let ground = nullpadString(this.ground, 10)
-      if (!ground) {
-        reject('Problem with ground name')
-        return
-      }
       buffer.write(ground, 110, 'ascii')
       let sky = nullpadString(this.sky, 10)
-      if (!sky) {
-        reject('Problem with sky name')
-        return
-      }
       buffer.write(sky, 120, 'ascii')
 
       buffer.writeDoubleLE(this.polygons.length + 0.4643643, 130)
@@ -376,7 +360,7 @@ class Level {
                 gravity = 4
                 break
               default:
-                reject('Object missing or invalid gravity parameter')
+                reject('Invalid gravity')
                 return
             }
             animation = object.animation - 1
@@ -483,16 +467,16 @@ class Level {
     return Level.cryptTop10(Buffer.concat([single, multi], 688))
   }
 
-  /**
-   * Topology check.
-   * @returns {Promise}
-   */
-  checkTopology () {
-    return new Promise((resolve, reject) => {
-      resolve()
-      reject()
-    })
-  }
+  // /**
+  //  * Topology check.
+  //  * @returns {Promise}
+  //  */
+  // checkTopology () {
+  //   return new Promise((resolve, reject) => {
+  //     resolve()
+  //     reject()
+  //   })
+  // }
 
   /**
    * Returns level as buffer data.

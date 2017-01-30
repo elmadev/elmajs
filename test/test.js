@@ -1,6 +1,8 @@
 const test = require('ava')
 const Level = require('../src').Level
 const Replay = require('../src').Replay
+const nullpadString = require('../src').util.nullpadString
+const formatTime = require('../src').util.formatTime
 
 /* * * * * * * *
  * Level tests *
@@ -195,6 +197,49 @@ test('Wrong end-of-file marker value gives error', t => {
   }).catch(error => t.pass(error))
 })
 
+test('Create a level and save it', t => {
+  let level = new Level()
+  level.objects.push({ x: 0, y: 0, type: 'apple', gravity: 'down', animation: 1 })
+  level.pictures.push({ x: 10, y: 50, name: 'barrel', texture: '', mask: '', distance: 555, clip: 'unclipped' })
+  level.pictures.push({ x: 10, y: 50, name: 'barrel', texture: '', mask: '', distance: 555, clip: 'ground' })
+  level.pictures.push({ x: 10, y: 50, name: 'barrel', texture: '', mask: '', distance: 555, clip: 'sky' })
+  return level.save('temp/save_lev_constructed.lev').then(_ => {
+    t.pass('Saved')
+  }).catch(error => t.fail(error))
+})
+
+test('Invalid object value gives error', t => {
+  let level = new Level()
+  level.objects.push({ x: 0, y: 0, type: 'notactuallyanobject', gravity: '', animation: 0 })
+  return level.save('temp/save_lev_constructed_invalid_obj.lev').then(_ => {
+    t.fail('Should not save')
+  }).catch(error => t.pass(error))
+})
+
+test('Invalid gravity value gives error', t => {
+  let level = new Level()
+  level.objects.push({ x: 0, y: 0, type: 'apple', gravity: 'notvalid', animation: 0 })
+  return level.save('temp/save_lev_constructed_invalid_grav.lev').then(_ => {
+    t.fail('Should not save')
+  }).catch(error => t.pass(error))
+})
+
+test('Invalid clip value gives error', t => {
+  let level = new Level()
+  level.pictures.push({ x: 1, y: 30, name: 'barrel', texture: '', mask: '', distance: 555, clip: 'notvalidclip' })
+  return level.save('temp/save_lev_constructed_invalid_clip.lev').then(_ => {
+    t.fail('Should not save')
+  }).catch(error => t.pass(error))
+})
+
+test('Saving Across level gives error', t => {
+  let level = new Level()
+  level.version = 'Across'
+  return level.save('temp/save_across_lev.lev').then(_ => {
+    t.fail('Should not save')
+  }).catch(error => t.pass(error))
+})
+
 /* * * * * * * * *
  * Replay tests  *
  * * * * * * * * */
@@ -330,6 +375,37 @@ test('Replay save() method without modifications matches original multi-replay',
   }).catch(error => t.fail(error))
 })
 
+test('Replay save() method without modifications matches original replay 2', t => {
+  return Replay.load('test/assets/replays/rec_valid_3.rec').then(original => {
+    return original.save('temp/save_rec_valid_3.rec').then(_ => {
+      return Replay.load('temp/save_rec_valid_3.rec').then(saved => {
+        t.deepEqual(original, saved)
+      }).catch(error => t.fail(error))
+    }).catch(error => t.fail(error))
+  }).catch(error => t.fail(error))
+})
+
+test('Replay save() method gives error when unknown event type', t => {
+  return Replay.load('test/assets/replays/rec_valid_3.rec').then(original => {
+    original.events[0][2].eventType = 'totallynotvalidevent'
+    return original.save('temp/save_rec_invalid_1.rec').then(_ => {
+      t.fail('Should not save')
+    }).catch(error => t.pass(error))
+  }).catch(error => t.fail(error))
+})
+
+test('Missing end-of-replay marker gives error, single', t => {
+  return Replay.load('test/assets/replays/missing_EOR_single.rec').then(result => {
+    t.fail('Should not load')
+  }).catch(error => t.pass(error))
+})
+
+test('Missing end-of-replay marker gives error, multi', t => {
+  return Replay.load('test/assets/replays/missing_EOR_multi.rec').then(result => {
+    t.fail('Should not load')
+  }).catch(error => t.pass(error))
+})
+
 test('Invalid Replay event: load() gives error', t => {
   return Replay.load('test/assets/replays/invalid_event.rec').then(result => {
     t.fail('Should not load')
@@ -381,3 +457,37 @@ test('getTime, unfinished, single, event, framediff', t => {
 /* * * * * * * *
  * Util tests  *
  * * * * * * * */
+test('nullpadString, string length longer than padding', t => {
+  t.is(nullpadString('teststring', 4), 'test')
+})
+
+test('nullpadString, non-ASCII string throws error', t => {
+  const error = t.throws(() => {
+    nullpadString('this is not ascii: ►', 4)
+  }, Error)
+
+  t.is(error.message, 'String contains non-ASCII values')
+})
+
+test('formatTime gives correct values', t => {
+  t.is(formatTime(114801), '11:48,01')
+  t.is(formatTime(10021), '01:00,21')
+  t.is(formatTime(10099), '01:00,99')
+  t.is(formatTime(590099), '59:00,99')
+  t.is(formatTime(1000), '00:10,00')
+  t.is(formatTime(0), '00:00,00')
+  t.is(formatTime(1922039), '59:59,99')
+})
+
+test('formatTime, invalid time format throws error', t => {
+  const error1 = t.throws(() => {
+    formatTime(601039)
+  }, Error)
+
+  const error2 = t.throws(() => {
+    formatTime(16039)
+  }, Error)
+
+  t.is(error1.message, 'Invalid time format')
+  t.is(error2.message, 'Invalid time format')
+})
