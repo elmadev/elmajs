@@ -160,6 +160,27 @@ test('Level save() method without modifications matches original level', t => {
   }).catch(error => t.fail(error))
 })
 
+test('Invalid clipping value gives error', t => {
+  t.plan(1)
+  return Level.load('test/assets/levels/invalid_clip.lev').then(level => {
+    t.fail('Should not load')
+  }).catch(error => t.pass(error))
+})
+
+test('Invalid gravity value gives error', t => {
+  t.plan(1)
+  return Level.load('test/assets/levels/invalid_grav.lev').then(level => {
+    t.fail('Should not load')
+  }).catch(error => t.pass(error))
+})
+
+test('Invalid object value gives error', t => {
+  t.plan(1)
+  return Level.load('test/assets/levels/invalid_obj.lev').then(level => {
+    t.fail('Should not load')
+  }).catch(error => t.pass(error))
+})
+
 /* * * * * * * * *
  * Replay tests  *
  * * * * * * * * */
