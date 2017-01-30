@@ -266,7 +266,7 @@ test('Valid replay 1: load() parses replay correctly', t => {
     t.deepEqual(result.events[0][0], { time: 1.57728480001688, info: -1, eventType: 'voltRight' })
     t.deepEqual(result.events[0][1], { time: 1.6974048000097273, info: -1, eventType: 'ground1' })
     t.deepEqual(result.events[0][11], { time: 3.9464880000114437, info: -1, eventType: 'voltLeft' })
-    t.deepEqual(result.events[0][23], { time: 6.398683200001716, info: 3, eventType: 'apple' })
+    t.deepEqual(result.events[0][23], { time: 6.398683200001716, info: 3, eventType: 'touch' })
   }).catch(error => t.fail(error.Error))
 })
 

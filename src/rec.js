@@ -145,7 +145,7 @@ class Replay {
       offset += 6 // 1 + 5 unknown bytes
       switch (eventType) {
         case 0:
-          event.eventType = 'apple'
+          event.eventType = 'touch'
           break
         case 1:
           event.eventType = 'ground1'
@@ -224,7 +224,7 @@ class Replay {
         buffer.writeDoubleLE(event.time, offset)
         offset += 8
         switch (event.eventType) {
-          case 'apple':
+          case 'touch':
             buffer.writeUInt32LE(event.info, offset)
             buffer.writeUInt32LE(0, offset + 4)
             break
