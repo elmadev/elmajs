@@ -1,8 +1,7 @@
 /**
  * Converts Elmas weird int-as-string times to formatted strings.
- * @param {string} str String to pad
- * @param {integer} pad Amount to pad
- * @returns {string} string
+ * @param {Number} time Time to format
+ * @returns {String} string
  */
 function formatTime (time) {
   time = time.toString()
