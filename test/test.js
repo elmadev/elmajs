@@ -181,6 +181,20 @@ test('Invalid object value gives error', t => {
   }).catch(error => t.pass(error))
 })
 
+test('Wrong end-of-data marker value gives error', t => {
+  t.plan(1)
+  return Level.load('test/assets/levels/missing_EOD.lev').then(level => {
+    t.fail('Should not load')
+  }).catch(error => t.pass(error))
+})
+
+test('Wrong end-of-file marker value gives error', t => {
+  t.plan(1)
+  return Level.load('test/assets/levels/missing_EOF.lev').then(level => {
+    t.fail('Should not load')
+  }).catch(error => t.pass(error))
+})
+
 /* * * * * * * * *
  * Replay tests  *
  * * * * * * * * */
