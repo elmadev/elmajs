@@ -314,19 +314,21 @@ test('Replay save() method without modifications matches original replay', t => 
   return Replay.load('test/assets/replays/rec_valid_1.rec').then(original => {
     return original.save('temp/save_rec_valid_1.rec').then(_ => {
       return Replay.load('temp/save_rec_valid_1.rec').then(saved => {
-        t.is(original.multi, saved.multi)
-        t.is(original.flagTag, saved.flagTag)
-        t.is(original.link, saved.link)
-        t.is(original.level, saved.level)
-        t.deepEqual(original.frames, saved.frames)
-        t.deepEqual(original.events, saved.events)
+        t.deepEqual(original, saved)
       }).catch(error => t.fail(error))
     }).catch(error => t.fail(error))
   }).catch(error => t.fail(error))
 })
 
-test.todo('check all replay attributes with 3+ replays')
-test.todo('multi-replay saving -> loading')
+test('Replay save() method without modifications matches original multi-replay', t => {
+  return Replay.load('test/assets/replays/rec_valid_2.rec').then(original => {
+    return original.save('temp/save_rec_valid_2.rec').then(_ => {
+      return Replay.load('temp/save_rec_valid_2.rec').then(saved => {
+        t.deepEqual(original, saved)
+      }).catch(error => t.fail(error))
+    }).catch(error => t.fail(error))
+  }).catch(error => t.fail(error))
+})
 
 /* * * * * * * *
  * Util tests  *
