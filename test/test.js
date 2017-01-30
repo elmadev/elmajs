@@ -1,6 +1,8 @@
 const test = require('ava')
 const Level = require('../src').Level
 const Replay = require('../src').Replay
+const nullpadString = require('../src').util.nullpadString
+const formatTime = require('../src').util.formatTime
 
 /* * * * * * * *
  * Level tests *

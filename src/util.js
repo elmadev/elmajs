@@ -10,7 +10,9 @@ function formatTime () {
  */
 function nullpadString (str, pad) {
   // check if ascii or padding shorter than string
-  if ((!/^[\x00-\x7F]*$/.test(str)) || (str.length > pad)) return undefined
+  if (!/^[\x00-\x7F]*$/.test(str)) throw new Error('String contains non-ASCII values')
+  // if string is longer than padding, just return a slice of it
+  if (str.length > pad) return str.slice(0, pad)
   return str + Array(pad - str.length + 1).join('\x00')
 }
 
