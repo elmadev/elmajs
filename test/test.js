@@ -330,6 +330,37 @@ test('Replay save() method without modifications matches original multi-replay',
   }).catch(error => t.fail(error))
 })
 
+test('Replay save() method without modifications matches original replay 2', t => {
+  return Replay.load('test/assets/replays/rec_valid_3.rec').then(original => {
+    return original.save('temp/save_rec_valid_3.rec').then(_ => {
+      return Replay.load('temp/save_rec_valid_3.rec').then(saved => {
+        t.deepEqual(original, saved)
+      }).catch(error => t.fail(error))
+    }).catch(error => t.fail(error))
+  }).catch(error => t.fail(error))
+})
+
+test('Replay save() method gives error when unknown event type', t => {
+  return Replay.load('test/assets/replays/rec_valid_3.rec').then(original => {
+    original.events[0][2].eventType = 'totallynotvalidevent'
+    return original.save('temp/save_rec_invalid_1.rec').then(_ => {
+      t.fail('Should not save')
+    }).catch(error => t.pass(error))
+  }).catch(error => t.fail(error))
+})
+
+test('Missing end-of-replay marker gives error, single', t => {
+  return Replay.load('test/assets/replays/missing_EOR_single.rec').then(result => {
+    t.fail('Should not load')
+  }).catch(error => t.pass(error))
+})
+
+test('Missing end-of-replay marker gives error, multi', t => {
+  return Replay.load('test/assets/replays/missing_EOR_multi.rec').then(result => {
+    t.fail('Should not load')
+  }).catch(error => t.pass(error))
+})
+
 test('Invalid Replay event: load() gives error', t => {
   return Replay.load('test/assets/replays/invalid_event.rec').then(result => {
     t.fail('Should not load')
