@@ -336,6 +336,48 @@ test('Invalid Replay event: load() gives error', t => {
   }).catch(error => t.pass(error))
 })
 
+test('getTime, finished, single', t => {
+  return Replay.load('test/assets/replays/rec_valid_1.rec').then(result => {
+    t.deepEqual(result.getTime(), { time: 14649, finished: true, reason: undefined })
+  }).catch(error => t.fail(error))
+})
+
+test('getTime, finished, multi', t => {
+  return Replay.load('test/assets/replays/rec_valid_2.rec').then(result => {
+    t.deepEqual(result.getTime(), { time: 14671, finished: true, reason: undefined })
+  }).catch(error => t.fail(error))
+})
+
+test('getTime, unfinished, no event', t => {
+  return Replay.load('test/assets/replays/unfinished.rec').then(result => {
+    t.deepEqual(result.getTime(), { time: 533, finished: false, reason: 'framediff' })
+  }).catch(error => t.fail(error))
+})
+
+test('getTime, unfinished, single, event', t => {
+  return Replay.load('test/assets/replays/rec_valid_3.rec').then(result => {
+    t.deepEqual(result.getTime(), { time: 4767, finished: false, reason: 'framediff' })
+  }).catch(error => t.fail(error))
+})
+
+test('getTime, unfinished, multi, event', t => {
+  return Replay.load('test/assets/replays/multi_event_unfinished.rec').then(result => {
+    t.deepEqual(result.getTime(), { time: 1600, finished: false, reason: 'framediff' })
+  }).catch(error => t.fail(error))
+})
+
+test('getTime, unfinished, multi, event 2', t => {
+  return Replay.load('test/assets/replays/multi_event_unfinished_2.rec').then(result => {
+    t.deepEqual(result.getTime(), { time: 3233, finished: false, reason: 'notouch' })
+  }).catch(error => t.fail(error))
+})
+
+test('getTime, unfinished, single, event, framediff', t => {
+  return Replay.load('test/assets/replays/event_unfinished.rec').then(result => {
+    t.deepEqual(result.getTime(), { time: 8567, finished: false, reason: 'framediff' })
+  }).catch(error => t.fail(error))
+})
+
 /* * * * * * * *
  * Util tests  *
  * * * * * * * */
