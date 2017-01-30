@@ -457,3 +457,37 @@ test('getTime, unfinished, single, event, framediff', t => {
 /* * * * * * * *
  * Util tests  *
  * * * * * * * */
+test('nullpadString, string length longer than padding', t => {
+  t.is(nullpadString('teststring', 4), 'test')
+})
+
+test('nullpadString, non-ASCII string throws error', t => {
+  const error = t.throws(() => {
+    nullpadString('this is not ascii: ►', 4)
+  }, Error)
+
+  t.is(error.message, 'String contains non-ASCII values')
+})
+
+test('formatTime gives correct values', t => {
+  t.is(formatTime(114801), '11:48,01')
+  t.is(formatTime(10021), '01:00,21')
+  t.is(formatTime(10099), '01:00,99')
+  t.is(formatTime(590099), '59:00,99')
+  t.is(formatTime(1000), '00:10,00')
+  t.is(formatTime(0), '00:00,00')
+  t.is(formatTime(1922039), '59:59,99')
+})
+
+test('formatTime, invalid time format throws error', t => {
+  const error1 = t.throws(() => {
+    formatTime(601039)
+  }, Error)
+
+  const error2 = t.throws(() => {
+    formatTime(16039)
+  }, Error)
+
+  t.is(error1.message, 'Invalid time format')
+  t.is(error2.message, 'Invalid time format')
+})
