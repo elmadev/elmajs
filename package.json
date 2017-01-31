@@ -1,6 +1,6 @@
 {
   "name": "node-elma",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Elasto Mania NPM package to read, modify and write Elma files",
   "main": "src/index.js",
   "scripts": {
@@ -33,5 +33,7 @@
     "eslint-plugin-standard": "^2.0.1",
     "nyc": "^10.0.0"
   },
-  "files": ["src"]
+  "files": [
+    "src"
+  ]
 }
