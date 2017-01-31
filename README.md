@@ -10,16 +10,16 @@ Elasto Mania NPM package for working with level and replay files. Currently stil
 See [https://doclets.io/elmadev/node-elma/master](https://doclets.io/elmadev/node-elma/master).
 
 # Contribute
-1. Fork this project
-2. Enter the following:
+1.  Fork this project
+2.  Enter the following:
 ```shell
 git clone https://github.com/YOUR-NAME/node-elma.git
 cd node-elma
 npm install #Alternatively use 'yarn' instead of 'npm install'
 ```
-3. Create your changes.
-4. `npm test` and make sure everything passes.
-5. Send a pull request!
+3.  Create your changes.
+4.  `npm test` and make sure everything passes.
+5.  Send a pull request!
 
 Do not modify any of the tests unless you know there is a mistake, or you need to add a new test for a new feature, or if something is missing.
 
