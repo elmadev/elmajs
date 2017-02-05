@@ -302,6 +302,14 @@ class Replay {
   }
 
   /**
+   * Returns replay data as a buffer.
+   * @returns {Promise}
+   */
+  toBuffer () {
+    return this._update()
+  }
+
+  /**
    * Saves a replay to file.
    * @param {string} filePath Path to file
    * @returns {Promise} Promise

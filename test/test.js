@@ -454,6 +454,24 @@ test('getTime, unfinished, single, event, framediff', t => {
   }).catch(error => t.fail(error))
 })
 
+test('Replay toBuffer() returns buffer with valid data', t => {
+  return Replay.load('test/assets/replays/rec_valid_1.rec').then(result => {
+    return result.toBuffer().then(buffer => {
+      t.is(buffer[0], 0xB8)
+      t.is(buffer[178], 0x05)
+      t.is(buffer[292], 0x4B)
+      t.is(buffer[449], 0xA5)
+      t.is(buffer[950], 0xCF)
+      t.is(buffer[1110], 0xB1)
+      t.is(buffer[1585], 0x80)
+      t.is(buffer[1989], 0xE8)
+      t.is(buffer[2383], 0x3F)
+      t.is(buffer[2601], 0x05)
+      t.is(buffer[3010], 0xB4)
+    }).catch(error => t.fail(error))
+  }).catch(error => t.fail(error))
+})
+
 /* * * * * * * *
  * Util tests  *
  * * * * * * * */
