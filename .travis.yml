@@ -1,7 +1,9 @@
 language: node_js
 node_js:
   - "node"
-  - "6"
+  - "10"
+  - "9"
+  - "8"
 before_script:
   - mkdir temp
 after_success:
