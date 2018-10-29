@@ -282,12 +282,52 @@ class Level {
     return output
   }
 
+  _calculateIntegrity() {
+    const pol_sum = this.polygons.reduce((accumulator, current) => {
+      return (
+        accumulator +
+        current.vertices.reduce((accumulator, current) => {
+          return accumulator + current.x + current.y;
+        }, 0)
+      );
+    }, 0);
+  
+    const obj_sum = this.objects.reduce((acc, val) => {
+      let obj_val = 0;
+      if (val.type === "exit") obj_val = 1;
+      else if (val.type === "apple") obj_val = 2;
+      else if (val.type === "killer") obj_val = 3;
+      else if (val.type === "start") obj_val = 4;
+      return acc + val.x + val.y + obj_val;
+    }, 0);
+  
+    const pic_sum = this.pictures.reduce((acc, val) => {
+      return acc + val.x + val.y;
+    }, 0);
+  
+    const sum = (pol_sum + obj_sum + pic_sum) * 3247.764325643;
+  
+    this.integrity = [
+      sum,
+      this._getRandomInt(0, 5871) + 11877 - sum,
+      this._getRandomInt(0, 5871) + 11877 - sum,
+      this._getRandomInt(0, 6102) + 12112 - sum
+    ];
+  }
+  
+  _getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min)) + min;
+  }
+
   /**
    * Internal convinience method.
    * @private
    * @returns {Promise}
    */
   _update () {
+    this._calculateIntegrity()
     return new Promise((resolve, reject) => {
       // figure out how big of a buffer to create since dynamic allocation is not a thing...
       let bufferSize = 850 // all known level attributes' size
