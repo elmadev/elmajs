@@ -1,4 +1,4 @@
-import { formatTime, trimString } from './util'
+import { formatTime, nullpadString, trimString } from './util'
 
 describe('formatTime', () => {
   test('formats correctly', () => {
@@ -10,6 +10,19 @@ describe('formatTime', () => {
     expect(formatTime(60000)).toBe('10:00,00')
     expect(formatTime(0)).toBe('00:00,00')
     expect(formatTime(1922039)).toBe('5:20:20,39')
+  })
+})
+
+describe('nullpadString', () => {
+  test('pads correctly', () => {
+    expect(nullpadString('a', 5)).toBe('a\x00\x00\x00\x00')
+    expect(nullpadString('', 1)).toBe('\x00')
+  })
+
+  test('slices correctly', () => {
+    expect(nullpadString('aaaaa', 5)).toBe('aaaaa')
+    expect(nullpadString('aaaaa', 3)).toBe('aaa')
+    expect(nullpadString('a\x00\x00', 2)).toBe('a\x00')
   })
 })
 
