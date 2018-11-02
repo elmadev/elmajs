@@ -1,4 +1,4 @@
-import { formatTime, nullpadString, trimString } from './util'
+import { formatTime, nullpadString, trimString } from '../src/util'
 
 describe('formatTime', () => {
   test('formats correctly', () => {
