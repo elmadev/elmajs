@@ -3,5 +3,8 @@
     "tslint:latest",
     "tslint-config-standard",
     "tslint-config-prettier"
-  ]
+  ],
+  "rules": {
+    "no-bitwise": false // we need bitwise operations for top10 cryptography
+  }
 }
