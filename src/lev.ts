@@ -1,5 +1,5 @@
 import { readFile } from 'fs-extra'
-import { ElmaObject, ObjectType } from './lev/ElmaObject'
+import { ElmaObject, Gravity, ObjectType } from './lev/ElmaObject'
 import { Picture } from './lev/Picture'
 import { Polygon } from './lev/Polygon'
 import { OBJECT_RADIUS, Position } from './shared'
@@ -79,7 +79,17 @@ export class Level {
     offset += 8
     const [polygons, readBytes] = this._parsePolygons(buffer, offset, polyCount)
     level.polygons = polygons
-    offset += readBytes
+    offset = readBytes
+
+    const objectCount = buffer.readDoubleLE(offset) - 0.4643643
+    offset += 8
+    level.objects = this._parseObjects(buffer, offset, objectCount)
+    offset += objectCount * 28
+
+    const picCount = buffer.readDoubleLE(offset) - 0.2345672
+    offset += 8
+    level.pictures = this._parsePictures(buffer, offset, picCount)
+    offset += picCount * 54
 
     return level
   }
@@ -90,6 +100,7 @@ export class Level {
     polyCount: number
   ): [Polygon[], number] {
     const polygons: Polygon[] = []
+
     for (let i = 0; i < polyCount; i++) {
       const polygon = new Polygon()
       polygon.grass = Boolean(buffer.readInt32LE(readBytes))
@@ -107,6 +118,61 @@ export class Level {
     }
 
     return [polygons, readBytes]
+  }
+
+  private static _parseObjects(
+    buffer: Buffer,
+    offset: number,
+    objectCount: number
+  ): ElmaObject[] {
+    const objects: ElmaObject[] = []
+
+    for (let i = 0; i < objectCount; i++) {
+      const elmaObject = new ElmaObject()
+      elmaObject.position.x = buffer.readDoubleLE(offset)
+      offset += 8
+      elmaObject.position.y = -buffer.readDoubleLE(offset)
+      offset += 8
+      elmaObject.type = buffer.readInt32LE(offset)
+      offset += 4
+      elmaObject.gravity = buffer.readInt32LE(offset)
+      offset += 4
+      elmaObject.animation = buffer.readInt32LE(offset) + 1
+      offset += 4
+
+      objects.push(elmaObject)
+    }
+
+    return objects
+  }
+
+  private static _parsePictures(
+    buffer: Buffer,
+    offset: number,
+    picCount: number
+  ) {
+    const pictures = []
+    for (let i = 0; i < picCount; i++) {
+      const picture = new Picture()
+      picture.name = trimString(buffer.slice(offset, offset + 10))
+      offset += 10
+      picture.texture = trimString(buffer.slice(offset, offset + 10))
+      offset += 10
+      picture.mask = trimString(buffer.slice(offset, offset + 10))
+      offset += 10
+      picture.position.x = buffer.readDoubleLE(offset)
+      offset += 8
+      picture.position.y = -buffer.readDoubleLE(offset)
+      offset += 8
+      picture.distance = buffer.readInt32LE(offset)
+      offset += 4
+      picture.clip = buffer.readInt32LE(offset)
+      offset += 4
+
+      pictures.push(picture)
+    }
+
+    return pictures
   }
 
   public version: Version
@@ -142,10 +208,17 @@ export class Level {
     ]
     this.objects = [
       {
-        position: { x: 2.0, y: 7.0 - OBJECT_RADIUS },
+        animation: 1,
+        gravity: Gravity.None,
+        position: new Position(2, 7 - OBJECT_RADIUS),
         type: ObjectType.Start,
       },
-      { position: { x: 8.0, y: 7.0 - OBJECT_RADIUS }, type: ObjectType.Exit },
+      {
+        animation: 1,
+        gravity: Gravity.None,
+        position: new Position(8, 7 - OBJECT_RADIUS),
+        type: ObjectType.Exit,
+      },
     ]
     this.pictures = []
     this.top10 = {
