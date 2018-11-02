@@ -1,9 +1,9 @@
 import { Position } from '../shared'
 
 export enum Clip {
-  Ground,
-  Sky,
-  Unclipped,
+  Unclipped = 0,
+  Ground = 1,
+  Sky = 2,
 }
 
 export class Picture {
