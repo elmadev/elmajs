@@ -64,5 +64,13 @@ describe('Level', () => {
     expect(level.pictures[1].position.y).toBe(3.964829547979911)
     expect(level.pictures[1].distance).toBe(750)
     expect(level.pictures[1].clip).toBe(Clip.Sky)
+
+    expect(level.top10.single.length).toBe(10)
+    expect(level.top10.single[0].name1).toBe('Rust')
+    expect(level.top10.single[0].name2).toBe('Cargo')
+    expect(level.top10.single[0].time).toBe(201)
+    expect(level.top10.single[2].name1).toBe('Cargo')
+    expect(level.top10.single[2].time).toBe(206)
+    expect(level.top10.single[9].time).toBe(308)
   })
 })
