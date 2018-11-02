@@ -43,5 +43,9 @@
   },
   "files": [
     "build"
-  ]
+  ],
+  "dependencies": {
+    "@types/fs-extra": "^5.0.4",
+    "fs-extra": "^7.0.0"
+  }
 }
