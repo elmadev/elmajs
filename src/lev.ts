@@ -1,4 +1,4 @@
-import { readFile } from 'fs-extra'
+import { readFile, writeFile } from 'fs-extra'
 import { ElmaObject, Gravity, ObjectType } from './lev/ElmaObject'
 import { Picture } from './lev/Picture'
 import { Polygon } from './lev/Polygon'
@@ -387,6 +387,11 @@ export class Level {
     buffer.writeInt32LE(EOF_MARKER, offset)
 
     return buffer
+  }
+
+  public async save(path: string) {
+    const buffer = await this.toBuffer()
+    await writeFile(path, buffer)
   }
 
   /**
