@@ -137,4 +137,13 @@ describe('Level', () => {
       Level.load('__tests__/assets/levels/missing_EOF.lev')
     ).rejects.toEqual(new Error('End of file marker mismatch'))
   })
+
+  test('.toBuffer() of unmodified level matches original', async () => {
+    const levelOriginal = await Level.load(
+      '__tests__/assets/levels/lev_valid_1.lev'
+    )
+    const buffer = await levelOriginal.toBuffer()
+    const bufferLevel = await Level.load(buffer)
+    expect(levelOriginal).toEqual(bufferLevel)
+  })
 })
