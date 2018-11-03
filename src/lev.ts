@@ -164,8 +164,18 @@ export class Level {
       elmaObject.position.y = -buffer.readDoubleLE(offset)
       offset += 8
       elmaObject.type = buffer.readInt32LE(offset)
+      if (elmaObject.type < 1 || elmaObject.type > 4) {
+        throw new Error(
+          `Invalid object type value=${elmaObject.type} at offset=${offset}`
+        )
+      }
       offset += 4
       elmaObject.gravity = buffer.readInt32LE(offset)
+      if (elmaObject.gravity < 0 || elmaObject.gravity > 4) {
+        throw new Error(
+          `Invalid gravity value=${elmaObject.gravity} at offset=${offset}`
+        )
+      }
       offset += 4
       elmaObject.animation = buffer.readInt32LE(offset) + 1
       offset += 4
@@ -197,6 +207,11 @@ export class Level {
       picture.distance = buffer.readInt32LE(offset)
       offset += 4
       picture.clip = buffer.readInt32LE(offset)
+      if (picture.clip < 0 || picture.clip > 2) {
+        throw new Error(
+          `Invalid clip value=${picture.clip} at offset=${offset}`
+        )
+      }
       offset += 4
 
       pictures.push(picture)
