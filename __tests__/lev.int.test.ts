@@ -73,4 +73,68 @@ describe('Level', () => {
     expect(level.top10.single[2].time).toBe(206)
     expect(level.top10.single[9].time).toBe(308)
   })
+
+  test('parses valid level #2', async () => {
+    const level = await Level.load('__tests__/assets/levels/lev_valid_2.lev')
+    expect(level).toBeInstanceOf(Level)
+    expect(level.version).toBe(Version.Elma)
+    expect(level.link).toBe(1505288190)
+    expect(level.name).toBe('')
+    expect(level.ground).toBe('brick')
+    expect(level.sky).toBe('ground')
+
+    expect(level.polygons.length).toBe(5)
+    expect(level.polygons[0].grass).toBeFalsy()
+    expect(level.polygons[0].vertices.length).toBe(4)
+    expect(level.polygons[0].vertices[0].x).toBe(18.507991950076164)
+    expect(level.polygons[0].vertices[1].y).toBe(-17.978810742022475)
+
+    expect(level.objects.length).toBe(17)
+
+    expect(level.pictures.length).toBe(3)
+
+    expect(level.top10.single.length).toBe(0)
+  })
+
+  test('across level throws', async () => {
+    expect(
+      Level.load('__tests__/assets/levels/lev_across.lev')
+    ).rejects.toEqual(new Error('Across levels are not supported'))
+  })
+
+  test('identifies invalid level', async () => {
+    expect(
+      Level.load('__tests__/assets/levels/lev_invalid_1.lev')
+    ).rejects.toEqual(new Error('Not valid Elma level'))
+  })
+
+  test('rejects invalid clip value', async () => {
+    expect(
+      Level.load('__tests__/assets/levels/invalid_clip.lev')
+    ).rejects.toEqual(new Error('Invalid clip value=3 at offset=1884'))
+  })
+
+  test('rejects invalid gravity value', async () => {
+    expect(
+      Level.load('__tests__/assets/levels/invalid_grav.lev')
+    ).rejects.toEqual(new Error('Invalid gravity value=6 at offset=1430'))
+  })
+
+  test('rejects invalid object value', async () => {
+    expect(
+      Level.load('__tests__/assets/levels/invalid_obj.lev')
+    ).rejects.toEqual(new Error('Invalid object type value=6 at offset=1538'))
+  })
+
+  test('identifies missing EOD marker', async () => {
+    expect(
+      Level.load('__tests__/assets/levels/missing_EOD.lev')
+    ).rejects.toEqual(new Error('End of data marker mismatch'))
+  })
+
+  test('identifies missing EOF marker', async () => {
+    expect(
+      Level.load('__tests__/assets/levels/missing_EOF.lev')
+    ).rejects.toEqual(new Error('End of file marker mismatch'))
+  })
 })
