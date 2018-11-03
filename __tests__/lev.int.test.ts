@@ -138,12 +138,41 @@ describe('Level', () => {
     ).rejects.toEqual(new Error('End of file marker mismatch'))
   })
 
-  test('.toBuffer() of unmodified level matches original', async () => {
+  test('.toBuffer() of unmodified level matches original #1', async () => {
     const levelOriginal = await Level.load(
       '__tests__/assets/levels/lev_valid_1.lev'
     )
     const buffer = await levelOriginal.toBuffer()
     const bufferLevel = await Level.load(buffer)
     expect(levelOriginal).toEqual(bufferLevel)
+  })
+
+  test('.save() unmodified level matches original #1', async () => {
+    const levelOriginal = await Level.load(
+      '__tests__/assets/levels/lev_valid_1.lev'
+    )
+    const path = 'temp/save_lev_valid_1.lev'
+    await levelOriginal.save(path)
+    const savedLevel = await Level.load(path)
+    expect(levelOriginal).toEqual(savedLevel)
+  })
+
+  test('.toBuffer() of unmodified level matches original #2', async () => {
+    const levelOriginal = await Level.load(
+      '__tests__/assets/levels/lev_valid_2.lev'
+    )
+    const buffer = await levelOriginal.toBuffer()
+    const bufferLevel = await Level.load(buffer)
+    expect(levelOriginal).toEqual(bufferLevel)
+  })
+
+  test('.save() unmodified level matches original #2', async () => {
+    const levelOriginal = await Level.load(
+      '__tests__/assets/levels/lev_valid_2.lev'
+    )
+    const path = 'temp/save_lev_valid_2.lev'
+    await levelOriginal.save(path)
+    const savedLevel = await Level.load(path)
+    expect(levelOriginal).toEqual(savedLevel)
   })
 })
