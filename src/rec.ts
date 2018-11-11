@@ -1,5 +1,6 @@
 import { readFile } from 'fs-extra'
 import Ride, { IEvent, IFrame, IRideHeader } from './rec/Ride'
+import { Position } from './shared'
 import { trimString } from './util'
 
 const EOR_MARKER = 0x00492f75 // replay marker
@@ -54,13 +55,13 @@ export class Replay {
     const level = trimString(buffer.slice(offset, offset + 12))
     offset += 16 // + 4 unused extra bytes
     const header = { isMulti, isFlagTag, link, level }
-    // frames
+
     ride.frames = await Replay._parseFrames(
       buffer.slice(offset, offset + 27 * numFrames),
       numFrames
     )
     offset += 27 * numFrames
-    // events
+
     const numEvents = buffer.readUInt32LE(offset)
     offset += 4
     ride.events = await Replay._parseEvents(
@@ -83,6 +84,38 @@ export class Replay {
     numFrames: number
   ): Promise<IFrame[]> {
     const frames: IFrame[] = []
+
+    for (let i = 0; i < numFrames; i++) {
+      const throttleAndDirection = buffer.readUInt8(i + numFrames * 24) // read in data field first to process it
+      const frame = {
+        backWheelSpeed: buffer.readUInt8(i + numFrames * 24),
+        bike: new Position(
+          buffer.readFloatLE(i * 4),
+          buffer.readFloatLE(i * 4 + numFrames * 4)
+        ),
+        bikeRotation: buffer.readInt16LE(i * 2 + numFrames * 20),
+        collisionStrength: buffer.readUInt8(i + numFrames * 25),
+        direction: throttleAndDirection & (1 << 1),
+        head: new Position(
+          buffer.readInt16LE(i * 2 + numFrames * 16),
+          buffer.readInt16LE(i * 2 + numFrames * 18)
+        ),
+        leftWheel: new Position(
+          buffer.readInt16LE(i * 2 + numFrames * 8),
+          buffer.readInt16LE(i * 2 + numFrames * 10)
+        ),
+        leftWheelRotation: buffer.readUInt8(i + numFrames * 22),
+        rightWheel: new Position(
+          buffer.readInt16LE(i * 2 + numFrames * 12),
+          buffer.readInt16LE(i * 2 + numFrames * 14)
+        ),
+        rightWheelRotation: buffer.readUInt8(i + numFrames * 23),
+        throttle: (throttleAndDirection & 1) !== 0,
+      }
+
+      frames.push(frame)
+    }
+
     return frames
   }
 
@@ -91,6 +124,26 @@ export class Replay {
     numEvents: number
   ): Promise<IEvent[]> {
     const events: IEvent[] = []
+
+    let offset = 0
+    for (let i = 0; i < numEvents; i++) {
+      const time = buffer.readDoubleLE(offset)
+      offset += 8
+      const touchInfo = buffer.readInt16LE(offset)
+      offset += 2
+      const type = buffer.readUInt8(offset)
+      offset += 2 // 1 + 1 padding
+      const groundInfo = buffer.readFloatLE(offset)
+      offset += 4
+      if (type < 0 || type > 7) {
+        throw new Error(
+          `Invalid event type value=${type} at event offset=${offset}`
+        )
+      }
+
+      events.push({ time, touchInfo, type, groundInfo })
+    }
+
     return events
   }
 
