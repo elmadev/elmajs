@@ -26,9 +26,10 @@ export class Replay {
 
     // support replays with more than 2 rides by continually trying to read ride data.
     while (offset < buffer.length) {
-      const [header, ride] = await this._parseRide(buffer)
+      const [header, ride] = await this._parseRide(buffer.slice(offset))
+      Object.assign(rec, header)
       rec.rides.push(ride)
-      offset += 36 + ride.frames.length * 27 + ride.events.length * 16
+      offset += 44 + ride.frames.length * 27 + ride.events.length * 16
     }
 
     return rec
@@ -68,7 +69,7 @@ export class Replay {
       buffer.slice(offset, offset + 16 * numEvents),
       numEvents
     )
-    // offset += 16 * numEvents
+    offset += 16 * numEvents
 
     const expected = buffer.readInt32LE(offset)
     if (expected !== EOR_MARKER) {
@@ -88,13 +89,13 @@ export class Replay {
     for (let i = 0; i < numFrames; i++) {
       const throttleAndDirection = buffer.readUInt8(i + numFrames * 24) // read in data field first to process it
       const frame = {
-        backWheelSpeed: buffer.readUInt8(i + numFrames * 24),
+        backWheelSpeed: buffer.readUInt8(i + numFrames * 25),
         bike: new Position(
           buffer.readFloatLE(i * 4),
           buffer.readFloatLE(i * 4 + numFrames * 4)
         ),
         bikeRotation: buffer.readInt16LE(i * 2 + numFrames * 20),
-        collisionStrength: buffer.readUInt8(i + numFrames * 25),
+        collisionStrength: buffer.readUInt8(i + numFrames * 26),
         direction: throttleAndDirection & (1 << 1),
         head: new Position(
           buffer.readInt16LE(i * 2 + numFrames * 16),
