@@ -1,11 +1,11 @@
-import { Position } from '../shared'
+import { Position } from '../shared';
 
-export class Polygon {
-  public grass: boolean
-  public vertices: Position[]
+export default class Polygon {
+  public grass: boolean;
+  public vertices: Position[];
 
   constructor() {
-    this.grass = false
-    this.vertices = []
+    this.grass = false;
+    this.vertices = [];
   }
 }
