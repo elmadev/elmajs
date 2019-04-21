@@ -1,6 +1,9 @@
-import { Replay } from '../src/rec';
-import { EventType } from '../src/rec/Event';
-import { Direction } from '../src/rec/Frame';
+import {
+  Direction,
+  EventType,
+  Replay,
+  ReplayFinishStateReason,
+} from '../src/rec';
 import { Position } from '../src/shared';
 
 describe('Replay reading', () => {
@@ -122,5 +125,74 @@ describe('Replay reading', () => {
 
     expect(replay.rides[0].events.length).toBe(24);
     expect(replay.rides[1].events.length).toBe(23);
+  });
+
+  test('getTime, finished, single', async () => {
+    const rec = await Replay.load('__tests__/assets/replays/rec_valid_1.rec');
+    expect(rec.getTime()).toEqual({
+      finished: true,
+      reason: ReplayFinishStateReason.Touch,
+      time: 14649,
+    });
+  });
+
+  test('getTime, finished, multi', async () => {
+    const rec = await Replay.load('__tests__/assets/replays/rec_valid_2.rec');
+    expect(rec.getTime()).toEqual({
+      finished: true,
+      reason: ReplayFinishStateReason.Touch,
+      time: 14671,
+    });
+  });
+
+  test('getTime, unfinished, no event', async () => {
+    const rec = await Replay.load('__tests__/assets/replays/unfinished.rec');
+    expect(rec.getTime()).toEqual({
+      finished: false,
+      reason: ReplayFinishStateReason.NoTouch,
+      time: 533,
+    });
+  });
+
+  test('getTime, unfinished, single, event', async () => {
+    const rec = await Replay.load('__tests__/assets/replays/rec_valid_3.rec');
+    expect(rec.getTime()).toEqual({
+      finished: false,
+      reason: ReplayFinishStateReason.NoTouch,
+      time: 4767,
+    });
+  });
+
+  test('getTime, unfinished, multi, event', async () => {
+    const rec = await Replay.load(
+      '__tests__/assets/replays/multi_event_unfinished.rec'
+    );
+    expect(rec.getTime()).toEqual({
+      finished: false,
+      reason: ReplayFinishStateReason.NoTouch,
+      time: 1600,
+    });
+  });
+
+  test('getTime, unfinished, multi, event 2', async () => {
+    const rec = await Replay.load(
+      '__tests__/assets/replays/multi_event_unfinished_2.rec'
+    );
+    expect(rec.getTime()).toEqual({
+      finished: false,
+      reason: ReplayFinishStateReason.NoTouch,
+      time: 3233,
+    });
+  });
+
+  test('getTime, unfinished, single, event, framediff', async () => {
+    const rec = await Replay.load(
+      '__tests__/assets/replays/event_unfinished.rec'
+    );
+    expect(rec.getTime()).toEqual({
+      finished: false,
+      reason: ReplayFinishStateReason.NoTouch,
+      time: 8567,
+    });
   });
 });
