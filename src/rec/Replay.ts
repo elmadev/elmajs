@@ -6,6 +6,18 @@ import { EventType } from './Event';
 
 const EOR_MARKER = 0x00492f75; // replay marker
 
+export enum ReplayFinishStateReason {
+  Touch = 'Touch',
+  NoTouch = 'NoTouch',
+  FrameDifference = 'FrameDifference',
+}
+
+export interface IFinishState {
+  finished: boolean;
+  reason: ReplayFinishStateReason;
+  time: number;
+}
+
 export default class Replay {
   /**
    * Loads a replay file.
@@ -293,31 +305,54 @@ export default class Replay {
 
   /**
    * Get time of replay in milliseconds.
-   * @returns {Time} Time and whether replay is probably finished or not.
    */
-  public getTime() {
-    // First check if last event was a touch event in either event data.
-    // let lastEvent1 = this.events[0][this.events[0].length - 1]
-    // let lastEvent2 = this.events[1][this.events[1].length - 1]
-    // let time1 = 0
-    // let time2 = 0
-    // if (lastEvent1 && lastEvent1.eventType === 'touch') time1 = lastEvent1.time
-    // if (lastEvent2 && lastEvent2.eventType === 'touch') time2 = lastEvent2.time
-    // // Highest frame time.
-    // let frames1Length = this.frames[0].length
-    // let frames2Length = this.frames[1].length
-    // let frameTimeMax = (frames1Length > frames2Length ? frames1Length : frames2Length) * 33.333
-    // // If neither had a touch event, return approximate frame time.
-    // if ((lastEvent1 && lastEvent1.eventType !== 'touch') && (lastEvent2 && lastEvent2.eventType !== 'touch')) {
-    //   return { time: Math.round(frameTimeMax), finished: false, reason: 'notouch' }
-    // }
-    // // Set to highest event time.
-    // let eventTimeMax = (time1 > time2 ? time1 : time2) * 2289.37728938
-    // // If event difference to frame time is >1 frames of time, probably not finished?
-    // if (frameTimeMax > (eventTimeMax + 34.333)) {
-    //   return { time: Math.round(frameTimeMax), finished: false, reason: 'framediff' }
-    // }
-    // // Otherwise probably finished?
-    // return { time: Math.round(eventTimeMax), finished: true, reason: undefined }
+  public getTime(): IFinishState {
+    // First check if last event was a touch event in ride(s) event data.
+    const lastEvent = this.rides.reduce((prev: any, ride) => {
+      const prevTime = prev ? prev.time : 0;
+      const lastRideEvent =
+        ride.events.length > 0
+          ? ride.events[ride.events.length - 1]
+          : undefined;
+      const lastRideEventTime = lastRideEvent ? lastRideEvent.time : 0;
+      if (lastRideEventTime > prevTime) {
+        return lastRideEvent;
+      }
+      return prev;
+    }, undefined);
+
+    // Highest frame time.
+    const maxFrames = this.rides.reduce((prev, ride) => {
+      return ride.frames.length > prev ? ride.frames.length : prev;
+    }, 0);
+    const maxFrameTime = maxFrames * 33.333;
+
+    // If no touch event, return approximate frame time.
+    if ((lastEvent && lastEvent.type !== EventType.Touch) || !lastEvent) {
+      return {
+        finished: false,
+        reason: ReplayFinishStateReason.NoTouch,
+        time: Math.round(maxFrameTime),
+      };
+    }
+
+    // Set to highest event time.
+    const maxEventTime = lastEvent.time * 2289.37728938;
+
+    // If event difference to frame time is >1 frames of time, probably not finished?
+    if (maxFrameTime > maxEventTime + 34.333) {
+      return {
+        finished: false,
+        reason: ReplayFinishStateReason.FrameDifference,
+        time: Math.round(maxFrameTime),
+      };
+    }
+
+    // Otherwise probably finished?
+    return {
+      finished: true,
+      reason: ReplayFinishStateReason.Touch,
+      time: Math.round(maxEventTime),
+    };
   }
 }
