@@ -265,17 +265,17 @@ export default class Level {
     this.link = 0;
     this.integrity = [0, 0, 0, 0];
     this.lgr = 'default';
-    this.name = 'New level';
+    this.name = 'Unnamed level';
     this.ground = 'ground';
     this.sky = 'sky';
     this.polygons = [
       {
         grass: false,
         vertices: [
-          { x: 10.0, y: 0.0 },
-          { x: 10.0, y: 7.0 },
-          { x: 0.0, y: 7.0 },
-          { x: 0.0, y: 0.0 },
+          new Position(10, 0),
+          new Position(10, 7),
+          new Position(0, 7),
+          new Position(0, 0),
         ],
       },
     ];
@@ -283,13 +283,13 @@ export default class Level {
       {
         animation: 1,
         gravity: Gravity.None,
-        position: new Position(2, 7 - OBJECT_RADIUS),
+        position: new Position(2, 0 + OBJECT_RADIUS),
         type: ObjectType.Start,
       },
       {
         animation: 1,
         gravity: Gravity.None,
-        position: new Position(8, 7 - OBJECT_RADIUS),
+        position: new Position(8, 0 + OBJECT_RADIUS),
         type: ObjectType.Exit,
       },
     ];
