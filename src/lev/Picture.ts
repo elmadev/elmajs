@@ -1,10 +1,4 @@
-import { Position } from '../shared';
-
-export enum Clip {
-  Unclipped = 0,
-  Ground = 1,
-  Sky = 2,
-}
+import { Clip, Position } from '../shared';
 
 export default class Picture {
   public name: string;
