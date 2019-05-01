@@ -17,6 +17,17 @@ export enum Clip {
   Sky = 2,
 }
 
+export interface ITimeEntry {
+  name1: string;
+  name2: string;
+  time: number;
+}
+
+export interface ITop10 {
+  single: ITimeEntry[];
+  multi: ITimeEntry[];
+}
+
 // Bike diameters and radii.
 export const HEAD_DIAMETER = 0.476;
 export const HEAD_RADIUS = 0.238;

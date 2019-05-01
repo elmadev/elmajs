@@ -1,7 +1,17 @@
 import { readFile, writeFile } from 'fs-extra';
-import { OBJECT_RADIUS, Position } from '../shared';
-import { nullpadString, trimString } from '../util';
-import { ElmaObject, Gravity, ObjectType, Picture, Polygon } from './';
+import {
+  ElmaObject,
+  Gravity,
+  ITimeEntry,
+  ITop10,
+  nullpadString,
+  OBJECT_RADIUS,
+  ObjectType,
+  Picture,
+  Polygon,
+  Position,
+  trimString,
+} from '../';
 
 const EOD_MARKER = 0x0067103a; // level data marker
 const EOF_MARKER = 0x00845d52; // level file marker
@@ -9,17 +19,6 @@ const EOF_MARKER = 0x00845d52; // level file marker
 export enum Version {
   Across,
   Elma,
-}
-
-export interface ITimeEntry {
-  name1: string;
-  name2: string;
-  time: number;
-}
-
-export interface ITop10 {
-  single: ITimeEntry[];
-  multi: ITimeEntry[];
 }
 
 export default class Level {
