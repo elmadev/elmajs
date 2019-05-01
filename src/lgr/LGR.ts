@@ -21,7 +21,7 @@ export default class LGR {
   public static async load(source: string | Buffer): Promise<LGR> {
     if (typeof source === 'string') {
       const file = await readFile(source);
-      return this._parseBuffer(file);
+      return this._parseBuffer(file, source);
     } else if (source instanceof Buffer) {
       return this._parseBuffer(source);
     }
@@ -30,8 +30,12 @@ export default class LGR {
     );
   }
 
-  private static async _parseBuffer(buffer: Buffer): Promise<LGR> {
+  private static async _parseBuffer(
+    buffer: Buffer,
+    path?: string
+  ): Promise<LGR> {
     const lgr = new LGR();
+    if (path) lgr.path = path;
 
     const version = buffer.toString('ascii', 0, 5);
 
@@ -71,15 +75,73 @@ export default class LGR {
 
   public pictureList: PictureDeclaration[] = [];
   public pictureData: PictureData[] = [];
+  public path: string = '';
 
   /**
    * Returns a buffer representation of the LGR.
    */
   public async toBuffer(): Promise<Buffer> {
-    const buffer = Buffer.alloc(0);
+    // calculate how many bytes to allocate:
+    // - 21 known static bytes, plus 26 bytes for each item in picture.lst
+    // - the image data is then reduced and added to that.
+    const pictureListLength = this.pictureList.length;
+    const bytesToAlloc = this.pictureData.reduce(
+      (bytes, picture) => bytes + picture.data.length + 24,
+      21 + 26 * pictureListLength
+    );
+    const buffer = Buffer.alloc(bytesToAlloc);
+    let offset = 0;
+    buffer.write('LGR12', offset, 5, 'ascii');
+    offset += 5;
+    buffer.writeUInt32LE(this.pictureData.length, offset);
+    offset += 4;
+    buffer.writeInt32LE(LGRStart, offset);
+    offset += 4;
+    buffer.writeUInt32LE(pictureListLength, offset);
+    offset += 4;
+
+    this.pictureList.forEach((pictureDeclaration, n) => {
+      buffer.write(
+        nullpadString(pictureDeclaration.name, 10),
+        offset + n * 10,
+        10,
+        'ascii'
+      );
+      buffer.writeUInt32LE(
+        pictureDeclaration.pictureType,
+        offset + 10 * pictureListLength + 4 * n
+      );
+      buffer.writeUInt32LE(
+        pictureDeclaration.distance,
+        offset + 14 * pictureListLength + 4 * n
+      );
+      buffer.writeUInt32LE(
+        pictureDeclaration.clipping,
+        offset + 18 * pictureListLength + 4 * n
+      );
+      buffer.writeUInt32LE(
+        pictureDeclaration.transparency,
+        offset + 22 * pictureListLength + 4 * n
+      );
+    });
+
+    offset += 26 * pictureListLength;
+
+    this.pictureData.forEach(pictureData => {
+      buffer.write(nullpadString(pictureData.name, 20), offset, 20, 'ascii');
+      offset += 20;
+      buffer.writeUInt32LE(pictureData.data.length, offset);
+      offset += 4;
+      offset += pictureData.data.copy(buffer, offset);
+    });
+    buffer.writeInt32LE(LGREOF, offset);
     return buffer;
   }
-  public async save() {}
+
+  public async save(path?: string) {
+    const buffer = await this.toBuffer();
+    await writeFile(path || this.path, buffer);
+  }
 
   private async _parseListData(
     buffer: Buffer,
@@ -118,89 +180,13 @@ export default class LGR {
     for (let i = 0; i < length; i++) {
       const name = trimString(buffer.slice(offset, offset + 12));
       offset += 20; // +8 garbage (?) bytes
-      const bytesToRead = buffer.readInt32LE(offset);
+      const bytesToRead = buffer.readUInt32LE(offset);
       offset += 4;
       const data = buffer.slice(offset, offset + bytesToRead);
       pictures.push(new PictureData(name, data));
       offset += bytesToRead;
     }
-
+    // we need to return amount of bytes read in order to correctly get the offset later.
     return [pictures, offset];
   }
-  // fn parse_picture_data(&mut self, mut buffer: &[u8], len: usize) -> Result<usize, ElmaError> {
-  // 	let mut bytes_read = 0;
-  // 	// pcx data
-  // 	for _ in 0..len {
-  // 			let (name, remaining) = buffer.split_at(12);
-  // 			let name = trim_string(&name)?;
-  // 			let (_, remaining) = remaining.split_at(8);
-  // 			let (mut bytes_len, remaining) = remaining.split_at(4);
-  // 			let bytes_len = bytes_len.read_i32::<LE>()? as usize;
-  // 			let data = remaining[..bytes_len].to_vec();
-
-  // 			self.picture_data.push(PictureData { name, data });
-  // 			buffer = &buffer[24 + bytes_len..];
-  // 			bytes_read += 24 + bytes_len;
-  // 	}
-  // 	Ok(bytes_read)
-  // }
 }
-
-// /// Returns a Vec with bytes representing the LGR as a buffer.
-// ///
-// /// # Examples
-// ///
-// /// ```rust
-// /// # use elma::lgr::*;
-// /// let lgr = LGR::new();
-// /// let buffer = lgr.to_bytes().unwrap();
-// /// ```
-// pub fn to_bytes(&self) -> Result<Vec<u8>, ElmaError> {
-// 	let mut bytes = vec![];
-// 	bytes.extend_from_slice(b"LGR12");
-// 	bytes.write_u32::<LE>(self.picture_data.len() as u32)?;
-// 	bytes.write_i32::<LE>(LGR)?;
-// 	bytes.extend_from_slice(&self.write_picture_list()?);
-// 	bytes.extend_from_slice(&self.write_picture_data()?);
-// 	bytes.write_i32::<LE>(LGR_EOF)?;
-
-// 	Ok(bytes)
-// }
-
-// fn write_picture_list(&self) -> Result<Vec<u8>, ElmaError> {
-// 	let mut bytes = vec![];
-// 	bytes.write_u32::<LE>(self.picture_list.len() as u32)?;
-// 	let mut names = vec![];
-// 	let mut picture_types = vec![];
-// 	let mut distances = vec![];
-// 	let mut clippings = vec![];
-// 	let mut transparencies = vec![];
-
-// 	for picture in &self.picture_list {
-// 			names.extend_from_slice(&string_null_pad(&picture.name, 10)?);
-// 			picture_types.write_u32::<LE>(picture.picture_type as u32)?;
-// 			distances.write_u32::<LE>(u32::from(picture.distance))?;
-// 			clippings.write_u32::<LE>(picture.clipping as u32)?;
-// 			transparencies.write_u32::<LE>(picture.transparency as u32)?;
-// 	}
-
-// 	bytes.extend_from_slice(&names);
-// 	bytes.extend_from_slice(&picture_types);
-// 	bytes.extend_from_slice(&distances);
-// 	bytes.extend_from_slice(&clippings);
-// 	bytes.extend_from_slice(&transparencies);
-
-// 	Ok(bytes)
-// }
-
-// fn write_picture_data(&self) -> Result<Vec<u8>, ElmaError> {
-// 	let mut bytes = vec![];
-
-// 	for picture in &self.picture_data {
-// 			bytes.extend_from_slice(&string_null_pad(&picture.name, 20)?);
-// 			bytes.write_u32::<LE>(picture.data.len() as u32)?;
-// 			bytes.extend_from_slice(&picture.data);
-// 	}
-
-// 	Ok(bytes)
-// }
