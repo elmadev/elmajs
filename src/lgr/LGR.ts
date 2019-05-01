@@ -9,9 +9,9 @@ import {
 import { nullpadString, trimString } from '../util';
 
 // Magic arbitrary number to signify start of LGR file.
-const LGRStart = 0x00_00_03_ea;
+const LGRStart = 0x000003ea;
 // Magic arbitrary number to signify end of LGR file.
-const LGREOF = 0x0b_2e_05_e7;
+const LGREOF = 0x0b2e05e7;
 
 export default class LGR {
   /**
@@ -48,17 +48,24 @@ export default class LGR {
 
     // picture.lst section
     const listLen = buffer.readInt32LE(13);
-    lgr.pictureList = await lgr._parseListData(buffer, listLen);
+    lgr.pictureList = await lgr._parseListData(
+      buffer.slice(17, 17 + 26 * listLen),
+      listLen
+    );
 
-    // // pcx data
-    // let bytes_read = lgr.parse_picture_data(&buffer, picture_len)?;
+    // pcx data
+    const [pictureData, bytesRead] = await lgr._parsePictureData(
+      buffer.slice(17 + 26 * listLen),
+      pictureLen
+    );
+    lgr.pictureData = pictureData;
 
-    // let (_, mut expected_eof) = buffer.split_at(bytes_read);
-
-    // let expected_eof = expected_eof.read_i32::<LE>()?;
-    // if expected_eof != LGR_EOF {
-    // 		return Err(ElmaError::EOFMismatch);
-    // }
+    const expectedEof = buffer.readInt32LE(17 + 26 * listLen + bytesRead);
+    if (expectedEof !== LGREOF) {
+      throw new Error(
+        `EOF marker expected at byte: ${17 + 26 * listLen + bytesRead}`
+      );
+    }
     return lgr;
   }
 
@@ -79,7 +86,7 @@ export default class LGR {
     length: number
   ): Promise<PictureDeclaration[]> {
     const pictureDeclarations: PictureDeclaration[] = [];
-    let offset = 17;
+    let offset = 0;
     const names = buffer.slice(offset, offset + length * 10);
     offset += length * 10;
     const pictureTypes = buffer.slice(offset, offset + length * 4);
@@ -101,25 +108,43 @@ export default class LGR {
 
     return pictureDeclarations;
   }
+
+  private async _parsePictureData(
+    buffer: Buffer,
+    length: number
+  ): Promise<[PictureData[], number]> {
+    const pictures: PictureData[] = [];
+    let offset = 0;
+    for (let i = 0; i < length; i++) {
+      const name = trimString(buffer.slice(offset, offset + 12));
+      offset += 20; // +8 garbage (?) bytes
+      const bytesToRead = buffer.readInt32LE(offset);
+      offset += 4;
+      const data = buffer.slice(offset, offset + bytesToRead);
+      pictures.push(new PictureData(name, data));
+      offset += bytesToRead;
+    }
+
+    return [pictures, offset];
+  }
+  // fn parse_picture_data(&mut self, mut buffer: &[u8], len: usize) -> Result<usize, ElmaError> {
+  // 	let mut bytes_read = 0;
+  // 	// pcx data
+  // 	for _ in 0..len {
+  // 			let (name, remaining) = buffer.split_at(12);
+  // 			let name = trim_string(&name)?;
+  // 			let (_, remaining) = remaining.split_at(8);
+  // 			let (mut bytes_len, remaining) = remaining.split_at(4);
+  // 			let bytes_len = bytes_len.read_i32::<LE>()? as usize;
+  // 			let data = remaining[..bytes_len].to_vec();
+
+  // 			self.picture_data.push(PictureData { name, data });
+  // 			buffer = &buffer[24 + bytes_len..];
+  // 			bytes_read += 24 + bytes_len;
+  // 	}
+  // 	Ok(bytes_read)
+  // }
 }
-
-// fn parse_picture_data(&mut self, mut buffer: &[u8], len: usize) -> Result<usize, ElmaError> {
-// 	let mut bytes_read = 0;
-// 	// pcx data
-// 	for _ in 0..len {
-// 			let (name, remaining) = buffer.split_at(12);
-// 			let name = trim_string(&name)?;
-// 			let (_, remaining) = remaining.split_at(8);
-// 			let (mut bytes_len, remaining) = remaining.split_at(4);
-// 			let bytes_len = bytes_len.read_i32::<LE>()? as usize;
-// 			let data = remaining[..bytes_len].to_vec();
-
-// 			self.picture_data.push(PictureData { name, data });
-// 			buffer = &buffer[24 + bytes_len..];
-// 			bytes_read += 24 + bytes_len;
-// 	}
-// 	Ok(bytes_read)
-// }
 
 // /// Returns a Vec with bytes representing the LGR as a buffer.
 // ///
