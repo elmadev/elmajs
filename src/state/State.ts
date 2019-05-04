@@ -44,12 +44,12 @@ export interface IPlayerEntry {
 export interface IPlayerKeys {
   throttle: number;
   brake: number;
-  rotate_right: number;
-  rotate_left: number;
-  change_direction: number;
-  toggle_navigator: number;
-  toggle_timer: number;
-  toggle_show_hide: number;
+  rotateRight: number;
+  rotateLeft: number;
+  changeDirection: number;
+  toggleNavigator: number;
+  toggleTimer: number;
+  toggleShowHide: number;
 }
 
 export default class State {
@@ -81,7 +81,7 @@ export default class State {
   /// State file version; the only supported value is 200.
   public version: number = 200;
   /// Best times lists. state.dat has a fixed-size array of 90 of these.
-  public times: ITop10[] = [];
+  public times: ITop10[] = Array(90).fill({});
   /// List of players. state.dat has a fixed-size array of 50 of these.
   public players: IPlayerEntry[] = [];
   /// Name of player A, maximum 14 characters.
@@ -89,13 +89,31 @@ export default class State {
   /// Name of player B, maximum 14 characters.
   public playerBName: string = '';
   /// Keys for player A.
-  public playerAKeys?: IPlayerKeys;
+  public playerAKeys: IPlayerKeys = {
+    brake: 208,
+    changeDirection: 57,
+    rotateLeft: 203,
+    rotateRight: 205,
+    throttle: 200,
+    toggleNavigator: 47,
+    toggleShowHide: 2,
+    toggleTimer: 20,
+  };
   /// Keys for player B.
-  public playerBKeys?: IPlayerKeys;
+  public playerBKeys: IPlayerKeys = {
+    brake: 80,
+    changeDirection: 82,
+    rotateLeft: 79,
+    rotateRight: 81,
+    throttle: 76,
+    toggleNavigator: 48,
+    toggleShowHide: 3,
+    toggleTimer: 21,
+  };
   /// Whether sound is enabled.
   public soundEnabled: boolean = true;
   /// Sound optimization.
-  public soundOptimization: SoundOptimization = SoundOptimization.Compatibility;
+  public soundOptimization: SoundOptimization = SoundOptimization.BestQuality;
   /// Play mode.
   public playMode: PlayMode = PlayMode.Single;
   /// Whether flag tag mode is enabled.
@@ -109,11 +127,11 @@ export default class State {
   /// Whether menus are animated.
   public animatedMenus: boolean = true;
   /// Key for increasing screen size.
-  public incScreenSizeKey?: number;
+  public incScreenSizeKey: number = 13;
   /// Key for decreasing screen size.
-  public decScreenSizeKey?: number;
+  public decScreenSizeKey: number = 12;
   /// Key for taking a screenshot.
-  public screenshotKey?: number;
+  public screenshotKey: number = 23;
   /// Name of last edited level.
   public lastEditedLevName: string = '';
   /// Name of last played external level.
