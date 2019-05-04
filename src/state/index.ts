@@ -1,1 +1,6 @@
-export { default as State } from './State';
+export {
+  default as State,
+  PlayMode,
+  VideoDetail,
+  SoundOptimization,
+} from './State';
