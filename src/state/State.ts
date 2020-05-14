@@ -1,5 +1,6 @@
-import { readFile, writeFile } from 'fs-extra';
-import { ITimeEntry, ITop10 } from '../';
+import { Buffer } from 'buffer';
+
+import { TimeEntry, Top10 } from '../shared';
 import { nullpadString, trimString } from '../util';
 
 const PLAYER_STRUCT_SIZE = 116;
@@ -30,7 +31,7 @@ export enum VideoDetail {
   High = 1,
 }
 
-export interface IPlayerEntry {
+export interface PlayerEntry {
   // Player name.
   name: string;
   // Skipped internals.
@@ -41,7 +42,7 @@ export interface IPlayerEntry {
   selected_internal: number;
 }
 
-export interface IPlayerKeys {
+export interface PlayerKeys {
   throttle: number;
   brake: number;
   rotateRight: number;
@@ -54,42 +55,87 @@ export interface IPlayerKeys {
 
 export default class State {
   /**
-   * Loads a state file.
-   * @param source Can either be a file path or a buffer
+   * Loads a state from a buffer representation of the file.
+   * @param buffer
    */
-  public static async load(source: string | Buffer): Promise<State> {
-    if (typeof source === 'string') {
-      const file = await readFile(source);
-      return this._parseBuffer(file, source);
-    } else if (source instanceof Buffer) {
-      return this._parseBuffer(source);
-    }
-    throw new Error(
-      'Invalid input argument. Expected string or Buffer instance object'
-    );
+  public static async from(buffer: Buffer): Promise<State> {
+    return this.parseBuffer(buffer);
   }
 
-  private static async _parseBuffer(
-    buffer: Buffer,
-    path?: string
-  ): Promise<State> {
+  private static async parseBuffer(buffer: Buffer): Promise<State> {
     const state = new State();
-    if (path) state.path = path;
+    const decryptedBuffer = this.cryptState(buffer);
+
+    let offset = 0;
+    const version = decryptedBuffer.readUInt32LE(offset);
+    if (version !== STATE_START) throw Error('Invalid state.dat file');
+    offset += 4;
+
     return state;
   }
 
-  /// State file version; the only supported value is 200.
-  public version: number = 200;
-  /// Best times lists. state.dat has a fixed-size array of 90 of these.
-  public times: ITop10[] = Array(90).fill({});
-  /// List of players. state.dat has a fixed-size array of 50 of these.
-  public players: IPlayerEntry[] = [];
-  /// Name of player A, maximum 14 characters.
-  public playerAName: string = '';
-  /// Name of player B, maximum 14 characters.
-  public playerBName: string = '';
-  /// Keys for player A.
-  public playerAKeys: IPlayerKeys = {
+  private static cryptState(buffer: Buffer): Buffer {
+    const bufCopy = Buffer.from(buffer);
+    const statePieces = [
+      4,
+      61920,
+      5800,
+      4,
+      PLAYER_NAME_SIZE,
+      PLAYER_NAME_SIZE,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      4,
+      32,
+      32,
+      4,
+      4,
+      4,
+      LEVEL_NAME_SIZE,
+      LEVEL_NAME_SIZE,
+    ];
+
+    let curr = 0;
+    for (const p of statePieces) {
+      const decryptedPart = this.cryptStatePiece(bufCopy.slice(curr, curr + p));
+      decryptedPart.copy(bufCopy, curr);
+      curr += p;
+    }
+    return bufCopy;
+  }
+
+  private static cryptStatePiece(buffer: Buffer): Buffer {
+    const bufCopy = Buffer.from(buffer);
+    let ebp8 = 0x17;
+    let ebp10 = 0x2636;
+
+    for (let i = 0; i < buffer.length; i++) {
+      bufCopy[i] ^= ebp8 & 0xff;
+      ebp10 += (ebp8 % 0xd3f) * 0xd3f;
+      ebp8 = ebp10 * 0x1f + 0xd3f;
+      ebp8 = (ebp8 & 0xffff) - 2 * (ebp8 & 0x8000);
+    }
+
+    return bufCopy;
+  }
+
+  // State file version; the only supported value is 200.
+  public readonly version = STATE_START;
+  // Best times lists. state.dat has a fixed-size array of 90 of these.
+  public times: Top10[] = Array(90).fill({});
+  // List of players. state.dat has a fixed-size array of 50 of these.
+  public players: PlayerEntry[] = [];
+  // Name of player A, maximum 14 characters.
+  public playerAName = '';
+  // Name of player B, maximum 14 characters.
+  public playerBName = '';
+  // Keys for player A.
+  public playerAKeys: PlayerKeys = {
     brake: 208,
     changeDirection: 57,
     rotateLeft: 203,
@@ -99,8 +145,8 @@ export default class State {
     toggleShowHide: 2,
     toggleTimer: 20,
   };
-  /// Keys for player B.
-  public playerBKeys: IPlayerKeys = {
+  // Keys for player B.
+  public playerBKeys: PlayerKeys = {
     brake: 80,
     changeDirection: 82,
     rotateLeft: 79,
@@ -110,33 +156,32 @@ export default class State {
     toggleShowHide: 3,
     toggleTimer: 21,
   };
-  /// Whether sound is enabled.
-  public soundEnabled: boolean = true;
-  /// Sound optimization.
+  // Whether sound is enabled.
+  public soundEnabled = true;
+  // Sound optimization.
   public soundOptimization: SoundOptimization = SoundOptimization.BestQuality;
-  /// Play mode.
+  // Play mode.
   public playMode: PlayMode = PlayMode.Single;
-  /// Whether flag tag mode is enabled.
-  public flagTag: boolean = false;
-  /// Whether bikes are swapped.
-  public swapBikes: boolean = false;
-  /// Video detail.
+  // Whether flag tag mode is enabled.
+  public flagTag = false;
+  // Whether bikes are swapped.
+  public swapBikes = false;
+  // Video detail.
   public videoDetail: VideoDetail = VideoDetail.High;
-  /// Whether objects are animated.
-  public animatedObjects: boolean = true;
-  /// Whether menus are animated.
-  public animatedMenus: boolean = true;
-  /// Key for increasing screen size.
-  public incScreenSizeKey: number = 13;
-  /// Key for decreasing screen size.
-  public decScreenSizeKey: number = 12;
-  /// Key for taking a screenshot.
-  public screenshotKey: number = 23;
-  /// Name of last edited level.
-  public lastEditedLevName: string = '';
-  /// Name of last played external level.
-  public lastPlayedExternal: string = '';
-  public path: string = '';
+  // Whether objects are animated.
+  public animatedObjects = true;
+  // Whether menus are animated.
+  public animatedMenus = true;
+  // Key for increasing screen size.
+  public incScreenSizeKey = 13;
+  // Key for decreasing screen size.
+  public decScreenSizeKey = 12;
+  // Key for taking a screenshot.
+  public screenshotKey = 23;
+  // Name of last edited level.
+  public lastEditedLevName = '';
+  // Name of last played external level.
+  public lastPlayedExternal = '';
 
   /**
    * Returns a buffer representation of the State.
@@ -144,10 +189,5 @@ export default class State {
   public async toBuffer(): Promise<Buffer> {
     const buffer = Buffer.alloc(0);
     return buffer;
-  }
-
-  public async save(path?: string) {
-    const buffer = await this.toBuffer();
-    await writeFile(path || this.path, buffer);
   }
 }

@@ -1,24 +1,23 @@
+import { readFile, writeFile } from 'fs-extra';
+
 import { PlayMode, SoundOptimization, State, VideoDetail } from '../src';
 
 describe('State', () => {
-  test('load and toBuffer matches #1', async () => {
-    const state = await State.load('__tests__/assets/state/state_default.dat');
-    state.path = '';
-    const stateBuffer = await state.toBuffer();
-    const loadedBuffer = await State.load(stateBuffer);
-    expect(state).toEqual(loadedBuffer);
-  });
+  test('load and toBuffer matches', async () => {
+    const files = ['__tests__/assets/state/state_default.dat', '__tests__/assets/state/state.dat'];
 
-  test('load and toBuffer matches #2', async () => {
-    const state = await State.load('__tests__/assets/state/state.dat');
-    state.path = '';
-    const stateBuffer = await state.toBuffer();
-    const loadedBuffer = await State.load(stateBuffer);
-    expect(state).toEqual(loadedBuffer);
+    for (const filePath of files) {
+      const file = await readFile(filePath);
+      const state = await State.from(file);
+      const stateBuffer = await state.toBuffer();
+      const loadedBuffer = await State.from(stateBuffer);
+      expect(state).toEqual(loadedBuffer);
+    }
   });
 
   test('state matches expected output', async () => {
-    const state = await State.load('__tests__/assets/state/state.dat');
+    const file = await readFile('__tests__/assets/state/state.dat');
+    const state = await State.from(file);
 
     const expectedTimes = {};
     expect(state.times[0]).toEqual(expectedTimes);
