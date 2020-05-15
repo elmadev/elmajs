@@ -3,7 +3,6 @@ import { Buffer } from 'buffer';
 import {
   ElmaObject,
   Gravity,
-  TimeEntry,
   Top10,
   nullpadString,
   OBJECT_RADIUS,
@@ -13,6 +12,7 @@ import {
   Position,
   trimString,
   top10ToBuffer,
+  bufferToTop10,
 } from '../';
 
 const EOD_MARKER = 0x0067103a; // level data marker
@@ -113,8 +113,7 @@ export default class Level {
     offset += 4;
 
     const top10Data = Level.cryptTop10(buffer.slice(offset, offset + 688));
-    level.top10.single = this._parseTop10(top10Data.slice(0, 344));
-    level.top10.multi = this._parseTop10(top10Data.slice(344));
+    level.top10 = bufferToTop10(top10Data);
     offset += 688;
 
     if (buffer.readInt32LE(offset) !== EOF_MARKER) {
@@ -200,25 +199,6 @@ export default class Level {
     }
 
     return pictures;
-  }
-
-  private static _parseTop10(buffer: Buffer): TimeEntry[] {
-    const entryCount = buffer.readInt32LE(0);
-    const top10: TimeEntry[] = [];
-
-    for (let i = 0; i < entryCount; i++) {
-      const timeOffset = 4 + i * 4;
-      const nameOneOffset = 44 + i * 15;
-      const nameOneEnd = nameOneOffset + 15;
-      const nameTwoOffset = 194 + i * 15;
-      const nameTwoEnd = nameTwoOffset + 15;
-      const time = buffer.readInt32LE(timeOffset);
-      const name1 = trimString(buffer.slice(nameOneOffset, nameOneEnd));
-      const name2 = trimString(buffer.slice(nameTwoOffset, nameTwoEnd));
-      top10.push({ time, name1, name2 });
-    }
-
-    return top10;
   }
 
   public version: Version;

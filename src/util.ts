@@ -45,29 +45,68 @@ export function trimString(buffer: Buffer): string {
  * @param top10
  */
 export function top10ToBuffer(top10: Top10): Buffer {
-  const buffers: Buffer[] = Object.values(top10)
-    .reverse() // ordered keys "multi" and "single", so reverse them
-    .map((list) => {
-      // sort all the times first
-      list.sort((a: TimeEntry, b: TimeEntry) => {
-        if (a.time > b.time) return 1;
-        if (a.time < b.time) return -1;
-        return 0;
-      });
-
-      const buffer = Buffer.alloc(344);
-      buffer.writeUInt32LE(list.length >= 10 ? 10 : list.length, 0);
-
-      for (let i = 0; i < list.length; i++) {
-        if (i < 10) {
-          buffer.writeUInt32LE(list[i].time, 4 + 4 * i);
-          buffer.write(nullpadString(list[i].name1, 15), 44 + 15 * i);
-          buffer.write(nullpadString(list[i].name2, 15), 194 + 15 * i);
-        }
-      }
-
-      return buffer;
+  const buffers: Buffer[] = Object.values(top10).map((list) => {
+    // sort all the times first
+    list.sort((a: TimeEntry, b: TimeEntry) => {
+      if (a.time > b.time) return 1;
+      if (a.time < b.time) return -1;
+      return 0;
     });
 
+    const buffer = Buffer.alloc(344);
+    buffer.writeUInt32LE(list.length >= 10 ? 10 : list.length, 0);
+
+    for (let i = 0; i < list.length; i++) {
+      if (i < 10) {
+        buffer.writeUInt32LE(list[i].time, 4 + 4 * i);
+        buffer.write(nullpadString(list[i].name1, 15), 44 + 15 * i);
+        buffer.write(nullpadString(list[i].name2, 15), 194 + 15 * i);
+      }
+    }
+
+    return buffer;
+  });
+
   return Buffer.concat(buffers, 688);
+}
+
+/**
+ * Converts buffer to Top10 part. I.e. single-player or multi-player top10 times separately
+ * @param buffer unencrypted Buffer of length 344
+ */
+export function bufferToTop10Part(buffer: Buffer): TimeEntry[] {
+  if (buffer.length != 344) throw Error(`Top10 buffer length expected to be 344, got ${buffer.length}`);
+
+  const entryCount = buffer.readInt32LE(0);
+  const top10: TimeEntry[] = [];
+
+  for (let i = 0; i < entryCount; i++) {
+    const timeOffset = 4 + i * 4;
+    const nameOneOffset = 44 + i * 15;
+    const nameOneEnd = nameOneOffset + 15;
+    const nameTwoOffset = 194 + i * 15;
+    const nameTwoEnd = nameTwoOffset + 15;
+    const time = buffer.readInt32LE(timeOffset);
+    const name1 = trimString(buffer.slice(nameOneOffset, nameOneEnd));
+    const name2 = trimString(buffer.slice(nameTwoOffset, nameTwoEnd));
+    top10.push({ time, name1, name2 });
+  }
+
+  return top10;
+}
+
+/**
+ * Converts buffer to Top10
+ * @param buffer unencrypted Buffer of length 688
+ */
+export function bufferToTop10(buffer: Buffer): Top10 {
+  if (buffer.length != 688) throw Error(`Top10 buffer length expected to be 688, got ${buffer.length}`);
+
+  const single = bufferToTop10Part(buffer.slice(0, 344));
+  const multi = bufferToTop10Part(buffer.slice(344));
+
+  return {
+    single,
+    multi,
+  };
 }
