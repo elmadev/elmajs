@@ -75,7 +75,7 @@ export function top10ToBuffer(top10: Top10): Buffer {
  * @param buffer unencrypted Buffer of length 344
  */
 export function bufferToTop10Part(buffer: Buffer): TimeEntry[] {
-  if (buffer.length != 344) throw Error(`Top10 buffer length expected to be 344, got ${buffer.length}`);
+  if (buffer.length !== 344) throw Error(`Top10 buffer length expected to be 344, got ${buffer.length}`);
 
   const entryCount = buffer.readInt32LE(0);
   const top10: TimeEntry[] = [];
@@ -100,7 +100,7 @@ export function bufferToTop10Part(buffer: Buffer): TimeEntry[] {
  * @param buffer unencrypted Buffer of length 688
  */
 export function bufferToTop10(buffer: Buffer): Top10 {
-  if (buffer.length != 688) throw Error(`Top10 buffer length expected to be 688, got ${buffer.length}`);
+  if (buffer.length !== 688) throw Error(`Top10 buffer length expected to be 688, got ${buffer.length}`);
 
   const single = bufferToTop10Part(buffer.slice(0, 344));
   const multi = bufferToTop10Part(buffer.slice(344));

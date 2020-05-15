@@ -1,8 +1,9 @@
 import { Buffer } from 'buffer';
 
-import { TimeEntry, Top10 } from '../shared';
-import { nullpadString, trimString } from '../util';
+import { Top10 } from '../shared';
+import { nullpadString, trimString, bufferToTop10 } from '../util';
 
+const STATE_SIZE = 67910;
 const PLAYER_STRUCT_SIZE = 116;
 const PLAYERENTRY_PADDING = 38;
 const NUM_INTERNALS = 54;
@@ -35,11 +36,11 @@ export interface PlayerEntry {
   // Player name.
   name: string;
   // Skipped internals.
-  skipped_internals: boolean[];
+  skippedInternals: boolean[];
   // The index of last internal the player has reached so far.
-  last_internal: number;
+  lastInternal: number;
   // The last played (selected) internal.
-  selected_internal: number;
+  selectedInternal: number;
 }
 
 export interface PlayerKeys {
@@ -58,11 +59,13 @@ export default class State {
    * Loads a state from a buffer representation of the file.
    * @param buffer
    */
-  public static async from(buffer: Buffer): Promise<State> {
+  public static from(buffer: Buffer): State {
+    if (buffer.length !== STATE_SIZE)
+      throw Error(`Invalid state.dat file, expected buffer length of ${STATE_SIZE}, got ${buffer.length}`);
     return this.parseBuffer(buffer);
   }
 
-  private static async parseBuffer(buffer: Buffer): Promise<State> {
+  private static parseBuffer(buffer: Buffer): State {
     const state = new State();
     const decryptedBuffer = this.cryptState(buffer);
 
@@ -71,7 +74,115 @@ export default class State {
     if (version !== STATE_START) throw Error('Invalid state.dat file');
     offset += 4;
 
+    for (let i = 0; i < NUM_LEVELS; i++) {
+      const levelTimesBuffer = decryptedBuffer.slice(offset, offset + 688);
+      const top10 = bufferToTop10(levelTimesBuffer);
+      state.times[i] = top10;
+      offset += 688;
+    }
+
+    // get amount of players before parsing player data
+    const players = decryptedBuffer.readUInt32LE(offset + 5800);
+    if (players > NUM_PLAYERS) throw Error(`Expected max ${NUM_PLAYERS} player entries, got ${players}`);
+
+    for (let i = 0; i < players; i++) {
+      const nextPlayerOffset = offset + i * PLAYER_STRUCT_SIZE;
+      const player = this.parsePlayer(decryptedBuffer.slice(nextPlayerOffset, nextPlayerOffset + PLAYER_STRUCT_SIZE));
+      state.players.push(player);
+    }
+
+    offset += 5800 + 4;
+
+    state.playerAName = trimString(decryptedBuffer.slice(offset, offset + PLAYER_NAME_SIZE));
+    offset += PLAYER_NAME_SIZE;
+    state.playerBName = trimString(decryptedBuffer.slice(offset, offset + PLAYER_NAME_SIZE));
+    offset += PLAYER_NAME_SIZE;
+
+    // settings
+    state.soundEnabled = Boolean(decryptedBuffer.readInt32LE(offset));
+    offset += 4;
+    state.soundOptimization = decryptedBuffer.readInt32LE(offset);
+    offset += 4;
+    state.playMode = decryptedBuffer.readInt32LE(offset);
+    offset += 4;
+    state.flagTag = Boolean(decryptedBuffer.readInt32LE(offset));
+    offset += 4;
+    state.swapBikes = !Boolean(decryptedBuffer.readInt32LE(offset)); // inverted because Balazs 🤷‍♀️
+    offset += 4;
+    state.videoDetail = decryptedBuffer.readInt32LE(offset);
+    offset += 4;
+    state.animatedObjects = Boolean(decryptedBuffer.readInt32LE(offset));
+    offset += 4;
+    state.animatedMenus = Boolean(decryptedBuffer.readInt32LE(offset));
+    offset += 4;
+
+    state.playerAKeys = this.parsePlayerKeys(decryptedBuffer.slice(offset, offset + 32));
+    offset += 32;
+    state.playerBKeys = this.parsePlayerKeys(decryptedBuffer.slice(offset, offset + 32));
+    offset += 32;
+
+    state.incScreenSizeKey = decryptedBuffer.readUInt32LE(offset);
+    offset += 4;
+    state.decScreenSizeKey = decryptedBuffer.readUInt32LE(offset);
+    offset += 4;
+    state.screenshotKey = decryptedBuffer.readUInt32LE(offset);
+    offset += 4;
+
+    state.lastEditedLevName = trimString(decryptedBuffer.slice(offset, offset + LEVEL_NAME_SIZE));
+    offset += LEVEL_NAME_SIZE;
+    state.lastPlayedExternal = trimString(decryptedBuffer.slice(offset, offset + LEVEL_NAME_SIZE));
+    offset += LEVEL_NAME_SIZE;
+
+    // do we actually care about this?
+    const EOF = decryptedBuffer.readUInt32LE(offset);
+    if (!(EOF === STATE_END || EOF === STATE_END_ALT)) throw Error(`Expected EOF marker, got ${EOF}`);
+
     return state;
+  }
+
+  private static parsePlayer(buffer: Buffer): PlayerEntry {
+    if (buffer.length !== PLAYER_STRUCT_SIZE)
+      throw Error(`Expected buffer of length ${PLAYER_STRUCT_SIZE}, got ${buffer.length}`);
+    const name = trimString(buffer.slice(0, PLAYERENTRY_NAME_SIZE));
+    const skippedInternals = [...buffer.slice(PLAYERENTRY_NAME_SIZE, PLAYERENTRY_NAME_SIZE + NUM_INTERNALS)].map(
+      Boolean,
+    );
+    const lastInternal = buffer.readUInt32LE(PLAYERENTRY_NAME_SIZE + NUM_INTERNALS + PLAYERENTRY_PADDING);
+    const selectedInternal = buffer.readUInt32LE(PLAYERENTRY_NAME_SIZE + NUM_INTERNALS + PLAYERENTRY_PADDING + 4);
+    const player = { name, skippedInternals, lastInternal, selectedInternal };
+
+    return player;
+  }
+
+  private static parsePlayerKeys(buffer: Buffer): PlayerKeys {
+    if (buffer.length !== 32) throw Error(`Expected buffer of length 32, got ${buffer.length}`);
+    let offset = 0;
+    const throttle = buffer.readUInt32LE(offset);
+    offset += 4;
+    const brake = buffer.readUInt32LE(offset);
+    offset += 4;
+    const rotateRight = buffer.readUInt32LE(offset);
+    offset += 4;
+    const rotateLeft = buffer.readUInt32LE(offset);
+    offset += 4;
+    const changeDirection = buffer.readUInt32LE(offset);
+    offset += 4;
+    const toggleNavigator = buffer.readUInt32LE(offset);
+    offset += 4;
+    const toggleTimer = buffer.readUInt32LE(offset);
+    offset += 4;
+    const toggleShowHide = buffer.readUInt32LE(offset);
+
+    return {
+      throttle,
+      brake,
+      rotateRight,
+      rotateLeft,
+      changeDirection,
+      toggleNavigator,
+      toggleTimer,
+      toggleShowHide,
+    };
   }
 
   private static cryptState(buffer: Buffer): Buffer {
@@ -127,7 +238,7 @@ export default class State {
   // State file version; the only supported value is 200.
   public readonly version = STATE_START;
   // Best times lists. state.dat has a fixed-size array of 90 of these.
-  public times: Top10[] = Array(90).fill({});
+  public times: Top10[] = Array(90).fill({ single: [], multi: [] });
   // List of players. state.dat has a fixed-size array of 50 of these.
   public players: PlayerEntry[] = [];
   // Name of player A, maximum 14 characters.
@@ -186,7 +297,7 @@ export default class State {
   /**
    * Returns a buffer representation of the State.
    */
-  public async toBuffer(): Promise<Buffer> {
+  public toBuffer(): Buffer {
     const buffer = Buffer.alloc(0);
     return buffer;
   }
