@@ -3,17 +3,15 @@ import { readFile } from 'fs-extra';
 import { PlayMode, SoundOptimization, State, VideoDetail, Top10 } from '../src';
 
 describe('State', () => {
-  test.skip('load and toBuffer matches', async () => {
-    const files = ['__tests__/assets/state/state_default.dat', '__tests__/assets/state/state.dat'];
-
-    for (const filePath of files) {
-      const file = await readFile(filePath);
+  test.each(['state_default.dat', 'state.dat', 'state_skipped_max_tag.dat'])(
+    'toBuffer matches original buffer: %s',
+    async (fileName: string) => {
+      const file = await readFile(`__tests__/assets/state/${fileName}`);
       const state = State.from(file);
       const stateBuffer = state.toBuffer();
-      const loadedBuffer = State.from(stateBuffer);
-      expect(state).toEqual(loadedBuffer);
-    }
-  });
+      expect(file).toEqual(stateBuffer);
+    },
+  );
 
   test('new State matches default state.dat', async () => {
     const file = await readFile('__tests__/assets/state/state_default.dat');

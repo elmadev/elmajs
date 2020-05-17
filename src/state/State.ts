@@ -1,7 +1,7 @@
 import { Buffer } from 'buffer';
 
 import { Top10 } from '../shared';
-import { nullpadString, trimString, bufferToTop10 } from '../util';
+import { nullpadString, trimString, bufferToTop10, top10ToBuffer } from '../util';
 
 const STATE_SIZE = 67910;
 const PLAYER_STRUCT_SIZE = 116;
@@ -15,7 +15,6 @@ const NUM_LEVELS = 90;
 const STATE_START = 200;
 const STATE_END = 123432221;
 const STATE_END_ALT = 123432112;
-const TOP10_ENTRIES = 10;
 
 export enum PlayMode {
   Single = 1,
@@ -298,7 +297,110 @@ export default class State {
    * Returns a buffer representation of the State.
    */
   public toBuffer(): Buffer {
-    const buffer = Buffer.alloc(0);
-    return buffer;
+    const buffer = Buffer.alloc(STATE_SIZE);
+    let offset = 0;
+
+    buffer.writeUInt32LE(STATE_START);
+    offset += 4;
+
+    // top10 lists, with padding if there are less times than expected.
+    const timesLen = this.times.length;
+    if (timesLen < NUM_LEVELS) {
+      const top10padding: Top10[] = Array(NUM_LEVELS - timesLen).fill({ single: [], multi: [] });
+      this.times.push(...top10padding);
+    }
+    for (const top10 of this.times.slice(0, NUM_LEVELS)) {
+      const top10Buffer = top10ToBuffer(top10);
+      top10Buffer.copy(buffer, offset);
+      offset += 688;
+    }
+
+    for (const player of this.players.slice(0, NUM_PLAYERS)) {
+      const name = nullpadString(player.name, PLAYERENTRY_NAME_SIZE);
+      buffer.write(name, offset, PLAYERENTRY_NAME_SIZE, 'ascii');
+      offset += PLAYERENTRY_NAME_SIZE;
+      const skippedInternals = player.skippedInternals.slice(0, NUM_INTERNALS);
+      skippedInternals.forEach((skipped) => {
+        buffer.writeUInt8(skipped ? 1 : 0, offset);
+        offset += 1;
+      });
+
+      if (skippedInternals.length < NUM_INTERNALS) {
+        offset += NUM_INTERNALS - skippedInternals.length;
+      }
+
+      offset += PLAYERENTRY_PADDING;
+      buffer.writeInt32LE(player.lastInternal, offset);
+      offset += 4;
+      buffer.writeInt32LE(player.selectedInternal, offset);
+      offset += 4;
+    }
+
+    if (this.players.length < NUM_PLAYERS) {
+      buffer.fill(0, offset, offset + PLAYER_STRUCT_SIZE * (NUM_PLAYERS - this.players.length));
+      offset += PLAYER_STRUCT_SIZE * (NUM_PLAYERS - this.players.length);
+    }
+
+    buffer.writeUInt32LE(this.players.length, offset);
+    offset += 4;
+
+    buffer.write(nullpadString(this.playerAName, PLAYER_NAME_SIZE), offset, PLAYER_NAME_SIZE, 'ascii');
+    offset += PLAYER_NAME_SIZE;
+    buffer.write(nullpadString(this.playerBName, PLAYER_NAME_SIZE), offset, PLAYER_NAME_SIZE, 'ascii');
+    offset += PLAYER_NAME_SIZE;
+
+    // settings
+    buffer.writeInt32LE(this.soundEnabled ? 1 : 0, offset);
+    offset += 4;
+    buffer.writeInt32LE(this.soundOptimization, offset);
+    offset += 4;
+    buffer.writeInt32LE(this.playMode, offset);
+    offset += 4;
+    buffer.writeInt32LE(this.flagTag ? 1 : 0, offset);
+    offset += 4;
+    buffer.writeInt32LE(this.swapBikes ? 0 : 1, offset);
+    offset += 4;
+    buffer.writeInt32LE(this.videoDetail, offset);
+    offset += 4;
+    buffer.writeInt32LE(this.animatedObjects ? 1 : 0, offset);
+    offset += 4;
+    buffer.writeInt32LE(this.animatedMenus ? 1 : 0, offset);
+    offset += 4;
+
+    // keys
+    [this.playerAKeys, this.playerBKeys].forEach((keys) => {
+      buffer.writeUInt32LE(keys.throttle, offset);
+      offset += 4;
+      buffer.writeUInt32LE(keys.brake, offset);
+      offset += 4;
+      buffer.writeUInt32LE(keys.rotateRight, offset);
+      offset += 4;
+      buffer.writeUInt32LE(keys.rotateLeft, offset);
+      offset += 4;
+      buffer.writeUInt32LE(keys.changeDirection, offset);
+      offset += 4;
+      buffer.writeUInt32LE(keys.toggleNavigator, offset);
+      offset += 4;
+      buffer.writeUInt32LE(keys.toggleTimer, offset);
+      offset += 4;
+      buffer.writeUInt32LE(keys.toggleShowHide, offset);
+      offset += 4;
+    });
+
+    buffer.writeUInt32LE(this.incScreenSizeKey, offset);
+    offset += 4;
+    buffer.writeUInt32LE(this.decScreenSizeKey, offset);
+    offset += 4;
+    buffer.writeUInt32LE(this.screenshotKey, offset);
+    offset += 4;
+
+    buffer.write(nullpadString(this.lastEditedLevName, LEVEL_NAME_SIZE), offset, LEVEL_NAME_SIZE, 'ascii');
+    offset += LEVEL_NAME_SIZE;
+    buffer.write(nullpadString(this.lastPlayedExternal, LEVEL_NAME_SIZE), offset, LEVEL_NAME_SIZE, 'ascii');
+    offset += LEVEL_NAME_SIZE;
+
+    buffer.writeUInt32LE(STATE_END, offset);
+
+    return State.cryptState(buffer);
   }
 }
