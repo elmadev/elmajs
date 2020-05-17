@@ -14,6 +14,7 @@ import {
   top10ToBuffer,
   bufferToTop10,
 } from '../';
+import { BufferInput } from '../shared';
 
 const EOD_MARKER = 0x0067103a; // level data marker
 const EOF_MARKER = 0x00845d52; // level file marker
@@ -28,14 +29,14 @@ export default class Level {
    * Loads a level from a buffer representation of the file.
    * @param buffer
    */
-  public static async from(buffer: Buffer): Promise<Level> {
-    return this.parseBuffer(buffer);
+  public static from(buffer: BufferInput): Level {
+    return this.parseBuffer(Buffer.from(buffer));
   }
 
   /**
    * Encrypts or decrypts top10 lists
    */
-  public static cryptTop10(buffer: Buffer): Buffer {
+  public static cryptTop10(buffer: BufferInput): Buffer {
     const output = Buffer.from(buffer); // copy buffer to not modify reference
     let ebp8 = 0x15;
     let ebp10 = 0x2637;
@@ -51,7 +52,7 @@ export default class Level {
     return output;
   }
 
-  private static async parseBuffer(buffer: Buffer): Promise<Level> {
+  private static parseBuffer(buffer: Buffer): Level {
     const level = new Level();
 
     // remove default polygons and objects
@@ -93,18 +94,18 @@ export default class Level {
 
     const polyCount = buffer.readDoubleLE(offset) - 0.4643643;
     offset += 8;
-    const [polygons, readBytes] = this._parsePolygons(buffer, offset, polyCount);
+    const [polygons, readBytes] = this.parsePolygons(buffer, offset, polyCount);
     level.polygons = polygons;
     offset = readBytes;
 
     const objectCount = buffer.readDoubleLE(offset) - 0.4643643;
     offset += 8;
-    level.objects = this._parseObjects(buffer, offset, objectCount);
+    level.objects = this.parseObjects(buffer, offset, objectCount);
     offset += objectCount * 28;
 
     const picCount = buffer.readDoubleLE(offset) - 0.2345672;
     offset += 8;
-    level.pictures = this._parsePictures(buffer, offset, picCount);
+    level.pictures = this.parsePictures(buffer, offset, picCount);
     offset += picCount * 54;
 
     if (buffer.readInt32LE(offset) !== EOD_MARKER) {
@@ -123,7 +124,7 @@ export default class Level {
     return level;
   }
 
-  private static _parsePolygons(buffer: Buffer, readBytes: number, polyCount: number): [Polygon[], number] {
+  private static parsePolygons(buffer: Buffer, readBytes: number, polyCount: number): [Polygon[], number] {
     const polygons: Polygon[] = [];
 
     for (let i = 0; i < polyCount; i++) {
@@ -145,7 +146,7 @@ export default class Level {
     return [polygons, readBytes];
   }
 
-  private static _parseObjects(buffer: Buffer, offset: number, objectCount: number): ElmaObject[] {
+  private static parseObjects(buffer: Buffer, offset: number, objectCount: number): ElmaObject[] {
     const objects: ElmaObject[] = [];
 
     for (let i = 0; i < objectCount; i++) {
@@ -173,7 +174,7 @@ export default class Level {
     return objects;
   }
 
-  private static _parsePictures(buffer: Buffer, offset: number, picCount: number): Picture[] {
+  private static parsePictures(buffer: Buffer, offset: number, picCount: number): Picture[] {
     const pictures = [];
     for (let i = 0; i < picCount; i++) {
       const picture = new Picture();
@@ -251,8 +252,8 @@ export default class Level {
   /**
    * Returns a buffer representation of the level.
    */
-  public async toBuffer(): Promise<Buffer> {
-    this.integrity = this._calculateIntegrity();
+  public toBuffer(): Buffer {
+    this.integrity = this.calculateIntegrity();
     let bufferSize = 850; // all known level attributes' size
     for (const polygon of this.polygons) {
       bufferSize += 8 + 16 * polygon.vertices.length;
@@ -345,7 +346,7 @@ export default class Level {
    * Calculates the integrity sums of the level.
    * NOTE: Does not currently detect topology errors.
    */
-  private _calculateIntegrity(): number[] {
+  private calculateIntegrity(): number[] {
     const polSum = this.polygons.reduce((polyAccumulator, polyCurrent) => {
       return (
         polyAccumulator +
@@ -372,16 +373,16 @@ export default class Level {
 
     return [
       sum,
-      this._getRandomInt(0, 5871) + 11877 - sum,
-      this._getRandomInt(0, 5871) + 11877 - sum,
-      this._getRandomInt(0, 6102) + 12112 - sum,
+      this.getRandomInt(0, 5871) + 11877 - sum,
+      this.getRandomInt(0, 5871) + 11877 - sum,
+      this.getRandomInt(0, 6102) + 12112 - sum,
     ];
   }
 
   /**
    * Returns a random number in [min..max] range
    */
-  private _getRandomInt(min: number, max: number): number {
+  private getRandomInt(min: number, max: number): number {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min)) + min;

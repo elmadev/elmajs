@@ -1,3 +1,10 @@
+import { Buffer } from 'buffer';
+
+/**
+ * Types that can be converted to a Buffer object
+ */
+export type BufferInput = Uint8Array | Buffer | ArrayBuffer;
+
 /**
  * Simple point with x and y coordinates
  */
