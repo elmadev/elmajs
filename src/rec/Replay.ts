@@ -1,7 +1,6 @@
-import { readFile, writeFile } from 'fs-extra';
-import { Position } from '../shared';
+import { Position, BufferInput } from '../shared';
 import { nullpadString, trimString } from '../util';
-import { Event, Frame, IRideHeader, Ride } from './';
+import { Event, Frame, RideHeader, Ride } from './';
 import { EventType } from './Event';
 
 const EOR_MARKER = 0x00492f75; // replay marker
@@ -12,7 +11,7 @@ export enum ReplayFinishStateReason {
   FrameDifference = 'FrameDifference',
 }
 
-export interface IFinishState {
+export interface FinishState {
   finished: boolean;
   reason: ReplayFinishStateReason;
   time: number;
@@ -21,29 +20,19 @@ export interface IFinishState {
 export default class Replay {
   /**
    * Loads a replay file.
-   * @param source Can either be a file path or a buffer
+   * @param buffer BufferInput
    */
-  public static async load(source: string | Buffer): Promise<Replay> {
-    if (typeof source === 'string') {
-      const file = await readFile(source);
-      return this._parseBuffer(file, source);
-    } else if (source instanceof Buffer) {
-      return this._parseBuffer(source);
-    }
-    throw new Error('This should be unreachable but ok');
+  public static from(buffer: BufferInput): Replay {
+    return this.parseBuffer(Buffer.from(buffer));
   }
 
-  private static async _parseBuffer(
-    buffer: Buffer,
-    path?: string
-  ): Promise<Replay> {
+  private static parseBuffer(buffer: Buffer): Replay {
     const rec = new Replay();
-    if (path) rec.path = path;
     let offset = 0;
 
     // support replays with more than 2 rides by continually trying to read ride data.
     while (offset < buffer.length) {
-      const [header, ride] = await this._parseRide(buffer.slice(offset));
+      const [header, ride] = this.parseRide(buffer.slice(offset));
       Object.assign(rec, header);
       rec.rides.push(ride);
       offset += 44 + ride.frames.length * 27 + ride.events.length * 16;
@@ -55,9 +44,7 @@ export default class Replay {
   /**
    * Parses a "ride", which consists of frames and events
    */
-  private static async _parseRide(
-    buffer: Buffer
-  ): Promise<[IRideHeader, Ride]> {
+  private static parseRide(buffer: Buffer): [RideHeader, Ride] {
     const ride = new Ride();
 
     let offset = 0;
@@ -74,18 +61,12 @@ export default class Replay {
     offset += 16; // + 4 unused extra bytes
     const header = { isMulti, isFlagTag, link, level };
 
-    ride.frames = await Replay._parseFrames(
-      buffer.slice(offset, offset + 27 * numFrames),
-      numFrames
-    );
+    ride.frames = Replay.parseFrames(buffer.slice(offset, offset + 27 * numFrames), numFrames);
     offset += 27 * numFrames;
 
     const numEvents = buffer.readUInt32LE(offset);
     offset += 4;
-    ride.events = await Replay._parseEvents(
-      buffer.slice(offset, offset + 16 * numEvents),
-      numEvents
-    );
+    ride.events = Replay.parseEvents(buffer.slice(offset, offset + 16 * numEvents), numEvents);
     offset += 16 * numEvents;
 
     const expected = buffer.readInt32LE(offset);
@@ -97,30 +78,21 @@ export default class Replay {
     return [header, ride];
   }
 
-  private static async _parseFrames(
-    buffer: Buffer,
-    numFrames: number
-  ): Promise<Frame[]> {
+  private static parseFrames(buffer: Buffer, numFrames: number): Frame[] {
     const frames: Frame[] = [];
 
     for (let i = 0; i < numFrames; i++) {
       const frame = new Frame();
-      frame.bike = new Position(
-        buffer.readFloatLE(i * 4),
-        buffer.readFloatLE(i * 4 + numFrames * 4)
-      );
+      frame.bike = new Position(buffer.readFloatLE(i * 4), buffer.readFloatLE(i * 4 + numFrames * 4));
       frame.leftWheel = new Position(
         buffer.readInt16LE(i * 2 + numFrames * 8),
-        buffer.readInt16LE(i * 2 + numFrames * 10)
+        buffer.readInt16LE(i * 2 + numFrames * 10),
       );
       frame.rightWheel = new Position(
         buffer.readInt16LE(i * 2 + numFrames * 12),
-        buffer.readInt16LE(i * 2 + numFrames * 14)
+        buffer.readInt16LE(i * 2 + numFrames * 14),
       );
-      frame.head = new Position(
-        buffer.readInt16LE(i * 2 + numFrames * 16),
-        buffer.readInt16LE(i * 2 + numFrames * 18)
-      );
+      frame.head = new Position(buffer.readInt16LE(i * 2 + numFrames * 16), buffer.readInt16LE(i * 2 + numFrames * 18));
       frame.bikeRotation = buffer.readInt16LE(i * 2 + numFrames * 20);
       frame.leftWheelRotation = buffer.readUInt8(i + numFrames * 22);
       frame.rightWheelRotation = buffer.readUInt8(i + numFrames * 23);
@@ -134,10 +106,7 @@ export default class Replay {
     return frames;
   }
 
-  private static async _parseEvents(
-    buffer: Buffer,
-    numEvents: number
-  ): Promise<Event[]> {
+  private static parseEvents(buffer: Buffer, numEvents: number): Event[] {
     const events: Event[] = [];
 
     let offset = 0;
@@ -151,9 +120,7 @@ export default class Replay {
       const groundInfo = buffer.readFloatLE(offset);
       offset += 4;
       if (type < 0 || type > 7) {
-        throw new Error(
-          `Invalid event type value=${type} at event offset=${offset}`
-        );
+        throw new Error(`Invalid event type value=${type} at event offset=${offset}`);
       }
 
       events.push({ time, touchInfo, type, groundInfo });
@@ -181,7 +148,7 @@ export default class Replay {
   /**
    * Returns a buffer representation of the replay.
    */
-  public async toBuffer(): Promise<Buffer> {
+  public toBuffer(): Buffer {
     // calculate how many bytes we need by checking each ride's frames and events
     const bufferSize = this.rides.reduce((byteAcc, ride) => {
       const rideBytes = 44 + 27 * ride.frames.length + 16 * ride.events.length;
@@ -190,7 +157,7 @@ export default class Replay {
     const buffer = Buffer.alloc(bufferSize);
     let offset = 0;
 
-    this.rides.forEach(ride => {
+    this.rides.forEach((ride) => {
       const numFrames = ride.frames.length;
       buffer.writeUInt32LE(numFrames, offset);
       buffer.writeUInt32LE(0x83, offset + 4);
@@ -203,58 +170,19 @@ export default class Replay {
       offset += 36;
       for (let i = 0; i < numFrames; i++) {
         buffer.writeFloatLE(ride.frames[i].bike.x, offset + i * 4);
-        buffer.writeFloatLE(
-          ride.frames[i].bike.y,
-          offset + i * 4 + numFrames * 4
-        );
-        buffer.writeInt16LE(
-          ride.frames[i].leftWheel.x,
-          offset + i * 2 + numFrames * 8
-        );
-        buffer.writeInt16LE(
-          ride.frames[i].leftWheel.y,
-          offset + i * 2 + numFrames * 10
-        );
-        buffer.writeInt16LE(
-          ride.frames[i].rightWheel.x,
-          offset + i * 2 + numFrames * 12
-        );
-        buffer.writeInt16LE(
-          ride.frames[i].rightWheel.y,
-          offset + i * 2 + numFrames * 14
-        );
-        buffer.writeInt16LE(
-          ride.frames[i].head.x,
-          offset + i * 2 + numFrames * 16
-        );
-        buffer.writeInt16LE(
-          ride.frames[i].head.y,
-          offset + i * 2 + numFrames * 18
-        );
-        buffer.writeInt16LE(
-          ride.frames[i].bikeRotation,
-          offset + i * 2 + numFrames * 20
-        );
-        buffer.writeUInt8(
-          ride.frames[i].leftWheelRotation,
-          offset + i + numFrames * 22
-        );
-        buffer.writeUInt8(
-          ride.frames[i].rightWheelRotation,
-          offset + i + numFrames * 23
-        );
-        buffer.writeUInt8(
-          ride.frames[i].throttleAndDirection,
-          offset + i + numFrames * 24
-        );
-        buffer.writeUInt8(
-          ride.frames[i].backWheelSpeed,
-          offset + i + numFrames * 25
-        );
-        buffer.writeUInt8(
-          ride.frames[i].collisionStrength,
-          offset + i + numFrames * 26
-        );
+        buffer.writeFloatLE(ride.frames[i].bike.y, offset + i * 4 + numFrames * 4);
+        buffer.writeInt16LE(ride.frames[i].leftWheel.x, offset + i * 2 + numFrames * 8);
+        buffer.writeInt16LE(ride.frames[i].leftWheel.y, offset + i * 2 + numFrames * 10);
+        buffer.writeInt16LE(ride.frames[i].rightWheel.x, offset + i * 2 + numFrames * 12);
+        buffer.writeInt16LE(ride.frames[i].rightWheel.y, offset + i * 2 + numFrames * 14);
+        buffer.writeInt16LE(ride.frames[i].head.x, offset + i * 2 + numFrames * 16);
+        buffer.writeInt16LE(ride.frames[i].head.y, offset + i * 2 + numFrames * 18);
+        buffer.writeInt16LE(ride.frames[i].bikeRotation, offset + i * 2 + numFrames * 20);
+        buffer.writeUInt8(ride.frames[i].leftWheelRotation, offset + i + numFrames * 22);
+        buffer.writeUInt8(ride.frames[i].rightWheelRotation, offset + i + numFrames * 23);
+        buffer.writeUInt8(ride.frames[i].throttleAndDirection, offset + i + numFrames * 24);
+        buffer.writeUInt8(ride.frames[i].backWheelSpeed, offset + i + numFrames * 25);
+        buffer.writeUInt8(ride.frames[i].collisionStrength, offset + i + numFrames * 26);
       }
 
       offset += 27 * numFrames;
@@ -262,7 +190,7 @@ export default class Replay {
       buffer.writeUInt32LE(ride.events.length, offset);
       offset += 4;
 
-      ride.events.forEach(event => {
+      ride.events.forEach((event) => {
         buffer.writeDoubleLE(event.time, offset);
         offset += 8;
         const defaultInfo = -1;
@@ -298,22 +226,14 @@ export default class Replay {
     return buffer;
   }
 
-  public async save(path?: string) {
-    const buffer = await this.toBuffer();
-    await writeFile(path || this.path || this.level, buffer);
-  }
-
   /**
    * Get time of replay in milliseconds.
    */
-  public getTime(): IFinishState {
+  public getTime(): FinishState {
     // First check if last event was a touch event in ride(s) event data.
-    const lastEvent = this.rides.reduce((prev: any, ride) => {
+    const lastEvent = this.rides.reduce((prev: undefined | Event, ride) => {
       const prevTime = prev ? prev.time : 0;
-      const lastRideEvent =
-        ride.events.length > 0
-          ? ride.events[ride.events.length - 1]
-          : undefined;
+      const lastRideEvent = ride.events.length > 0 ? ride.events[ride.events.length - 1] : undefined;
       const lastRideEventTime = lastRideEvent ? lastRideEvent.time : 0;
       if (lastRideEventTime > prevTime) {
         return lastRideEvent;

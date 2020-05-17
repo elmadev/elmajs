@@ -31,21 +31,19 @@ export default class Frame {
     this.throttleAndDirection = 0;
   }
 
-  get throttle() {
+  get throttle(): boolean {
     return (this.throttleAndDirection & 1) !== 0;
   }
 
   set throttle(throttle: boolean) {
-    this.throttleAndDirection =
-      (this.throttleAndDirection & ~1) | (throttle ? 1 : 0);
+    this.throttleAndDirection = (this.throttleAndDirection & ~1) | (throttle ? 1 : 0);
   }
 
-  get direction() {
+  get direction(): Direction {
     return this.throttleAndDirection & (1 << 1);
   }
 
   set direction(direction: Direction) {
-    this.throttleAndDirection =
-      (this.throttleAndDirection & ~(1 << 2)) | (direction << 2);
+    this.throttleAndDirection = (this.throttleAndDirection & ~(1 << 2)) | (direction << 2);
   }
 }
