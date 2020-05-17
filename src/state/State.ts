@@ -303,17 +303,15 @@ export default class State {
     buffer.writeUInt32LE(STATE_START);
     offset += 4;
 
-    // top10 lists, with padding if there are less times than expected.
-    const timesLen = this.times.length;
-    if (timesLen < NUM_LEVELS) {
-      const top10padding: Top10[] = Array(NUM_LEVELS - timesLen).fill({ single: [], multi: [] });
-      this.times.push(...top10padding);
-    }
     for (const top10 of this.times.slice(0, NUM_LEVELS)) {
       const top10Buffer = top10ToBuffer(top10);
       top10Buffer.copy(buffer, offset);
       offset += 688;
     }
+
+    // "reset" offset, essentially handling there being less top10s than NUM_LEVELS
+    // as the buffer is already 0-filled
+    offset = 4 + 61920;
 
     for (const player of this.players.slice(0, NUM_PLAYERS)) {
       const name = nullpadString(player.name, PLAYERENTRY_NAME_SIZE);
