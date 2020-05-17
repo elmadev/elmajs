@@ -1,7 +1,7 @@
 import Event from './Event';
 import Frame from './Frame';
 
-export interface IRideHeader {
+export interface RideHeader {
   link: number;
   level: string;
   isMulti: boolean;
