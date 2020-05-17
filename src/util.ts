@@ -1,6 +1,6 @@
 import { Buffer } from 'buffer';
 
-import { Top10, TimeEntry } from './shared';
+import { Top10, TimeEntry, BufferInput } from './shared';
 
 /**
  * Formats time to string.
@@ -35,9 +35,10 @@ export function nullpadString(str: string, length: number): string {
 /**
  * Trims null-bytes and any following bytes from buffer and returns a string representation.
  */
-export function trimString(buffer: Buffer): string {
-  const index = buffer.indexOf('\x00');
-  return buffer.toString('ascii', 0, index !== -1 ? index : undefined);
+export function trimString(buffer: BufferInput): string {
+  const bufferObj = Buffer.from(buffer);
+  const index = bufferObj.indexOf('\x00');
+  return bufferObj.toString('ascii', 0, index !== -1 ? index : undefined);
 }
 
 /**
@@ -74,10 +75,12 @@ export function top10ToBuffer(top10: Top10): Buffer {
  * Converts buffer to Top10 part. I.e. single-player or multi-player top10 times separately
  * @param buffer unencrypted Buffer of length 344
  */
-export function bufferToTop10Part(buffer: Buffer): TimeEntry[] {
-  if (buffer.length !== 344) throw Error(`Top10 buffer length expected to be 344, got ${buffer.length}`);
+export function bufferToTop10Part(buffer: BufferInput): TimeEntry[] {
+  const bufferObj = Buffer.from(buffer);
 
-  const entryCount = buffer.readInt32LE(0);
+  if (bufferObj.length !== 344) throw Error(`Top10 buffer length expected to be 344, got ${bufferObj.length}`);
+
+  const entryCount = bufferObj.readInt32LE(0);
   const top10: TimeEntry[] = [];
 
   for (let i = 0; i < entryCount; i++) {
@@ -86,9 +89,9 @@ export function bufferToTop10Part(buffer: Buffer): TimeEntry[] {
     const nameOneEnd = nameOneOffset + 15;
     const nameTwoOffset = 194 + i * 15;
     const nameTwoEnd = nameTwoOffset + 15;
-    const time = buffer.readInt32LE(timeOffset);
-    const name1 = trimString(buffer.slice(nameOneOffset, nameOneEnd));
-    const name2 = trimString(buffer.slice(nameTwoOffset, nameTwoEnd));
+    const time = bufferObj.readInt32LE(timeOffset);
+    const name1 = trimString(bufferObj.slice(nameOneOffset, nameOneEnd));
+    const name2 = trimString(bufferObj.slice(nameTwoOffset, nameTwoEnd));
     top10.push({ time, name1, name2 });
   }
 
@@ -99,11 +102,13 @@ export function bufferToTop10Part(buffer: Buffer): TimeEntry[] {
  * Converts buffer to Top10
  * @param buffer unencrypted Buffer of length 688
  */
-export function bufferToTop10(buffer: Buffer): Top10 {
-  if (buffer.length !== 688) throw Error(`Top10 buffer length expected to be 688, got ${buffer.length}`);
+export function bufferToTop10(buffer: BufferInput): Top10 {
+  const bufferObj = Buffer.from(buffer);
 
-  const single = bufferToTop10Part(buffer.slice(0, 344));
-  const multi = bufferToTop10Part(buffer.slice(344));
+  if (bufferObj.length !== 688) throw Error(`Top10 buffer length expected to be 688, got ${bufferObj.length}`);
+
+  const single = bufferToTop10Part(bufferObj.slice(0, 344));
+  const multi = bufferToTop10Part(bufferObj.slice(344));
 
   return {
     single,
