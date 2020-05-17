@@ -5,7 +5,7 @@ export class Position {
   public x: number;
   public y: number;
 
-  constructor(x: number = 0, y: number = 0) {
+  constructor(x = 0, y = 0) {
     this.x = x;
     this.y = y;
   }
@@ -15,6 +15,17 @@ export enum Clip {
   Unclipped = 0,
   Ground = 1,
   Sky = 2,
+}
+
+export interface TimeEntry {
+  name1: string;
+  name2: string;
+  time: number;
+}
+
+export interface Top10 {
+  single: TimeEntry[];
+  multi: TimeEntry[];
 }
 
 // Bike diameters and radii.

@@ -1,17 +1,17 @@
+import { readFile, writeFile } from 'fs-extra';
+
 import { Clip, Gravity, Level, ObjectType, Version } from '../src';
 
 describe('Level', () => {
   test('parses valid level #1', async () => {
-    const level = await Level.load('__tests__/assets/levels/lev_valid_1.lev');
+    const filePath = '__tests__/assets/levels/lev_valid_1.lev';
+    const file = await readFile(filePath);
+    const level = await Level.from(file);
+
     expect(level).toBeInstanceOf(Level);
     expect(level.version).toBe(Version.Elma);
     expect(level.link).toBe(1524269776);
-    expect(level.integrity).toEqual([
-      -1148375.210607791,
-      1164056.210607791,
-      1162467.210607791,
-      1162283.210607791,
-    ]);
+    expect(level.integrity).toEqual([-1148375.210607791, 1164056.210607791, 1162467.210607791, 1162283.210607791]);
     expect(level.name).toBe('Rust test');
     expect(level.lgr).toBe('default');
     expect(level.ground).toBe('ground');
@@ -73,7 +73,9 @@ describe('Level', () => {
   });
 
   test('parses valid level #2', async () => {
-    const level = await Level.load('__tests__/assets/levels/lev_valid_2.lev');
+    const filePath = '__tests__/assets/levels/lev_valid_2.lev';
+    const file = await readFile(filePath);
+    const level = await Level.from(file);
     expect(level).toBeInstanceOf(Level);
     expect(level.version).toBe(Version.Elma);
     expect(level.link).toBe(1505288190);
@@ -94,83 +96,57 @@ describe('Level', () => {
     expect(level.top10.single.length).toBe(0);
   });
 
-  test('across level throws', () => {
-    return expect(
-      Level.load('__tests__/assets/levels/lev_across.lev')
-    ).rejects.toEqual(new Error('Across levels are not supported'));
+  test('across level throws', async () => {
+    const filePath = '__tests__/assets/levels/lev_across.lev';
+    const file = await readFile(filePath);
+    return expect(Level.from(file)).rejects.toEqual(new Error('Across levels are not supported'));
   });
 
-  test('identifies invalid level', () => {
-    return expect(
-      Level.load('__tests__/assets/levels/lev_invalid_1.lev')
-    ).rejects.toEqual(new Error('Not valid Elma level'));
+  test('identifies invalid level', async () => {
+    const filePath = '__tests__/assets/levels/lev_invalid_1.lev';
+    const file = await readFile(filePath);
+    return expect(Level.from(file)).rejects.toEqual(new Error('Not valid Elma level'));
   });
 
-  test('rejects invalid clip value', () => {
-    return expect(
-      Level.load('__tests__/assets/levels/invalid_clip.lev')
-    ).rejects.toEqual(new Error('Invalid clip value=3 at offset=1884'));
+  test('rejects invalid clip value', async () => {
+    const filePath = '__tests__/assets/levels/invalid_clip.lev';
+    const file = await readFile(filePath);
+    return expect(Level.from(file)).rejects.toEqual(new Error('Invalid clip value=3 at offset=1884'));
   });
 
-  test('rejects invalid gravity value', () => {
-    return expect(
-      Level.load('__tests__/assets/levels/invalid_grav.lev')
-    ).rejects.toEqual(new Error('Invalid gravity value=6 at offset=1430'));
+  test('rejects invalid gravity value', async () => {
+    const filePath = '__tests__/assets/levels/invalid_grav.lev';
+    const file = await readFile(filePath);
+    return expect(Level.from(file)).rejects.toEqual(new Error('Invalid gravity value=6 at offset=1430'));
   });
 
-  test('rejects invalid object value', () => {
-    return expect(
-      Level.load('__tests__/assets/levels/invalid_obj.lev')
-    ).rejects.toEqual(new Error('Invalid object type value=6 at offset=1538'));
+  test('rejects invalid object value', async () => {
+    const filePath = '__tests__/assets/levels/invalid_obj.lev';
+    const file = await readFile(filePath);
+    return expect(Level.from(file)).rejects.toEqual(new Error('Invalid object type value=6 at offset=1538'));
   });
 
-  test('identifies missing EOD marker', () => {
-    return expect(
-      Level.load('__tests__/assets/levels/missing_EOD.lev')
-    ).rejects.toEqual(new Error('End of data marker mismatch'));
+  test('identifies missing EOD marker', async () => {
+    const filePath = '__tests__/assets/levels/missing_EOD.lev';
+    const file = await readFile(filePath);
+    return expect(Level.from(file)).rejects.toEqual(new Error('End of data marker mismatch'));
   });
 
-  test('identifies missing EOF marker', () => {
-    return expect(
-      Level.load('__tests__/assets/levels/missing_EOF.lev')
-    ).rejects.toEqual(new Error('End of file marker mismatch'));
+  test('identifies missing EOF marker', async () => {
+    const filePath = '__tests__/assets/levels/missing_EOF.lev';
+    const file = await readFile(filePath);
+    return expect(Level.from(file)).rejects.toEqual(new Error('End of file marker mismatch'));
   });
 
-  test('.toBuffer() of unmodified level matches original #1', async () => {
-    const levelOriginal = await Level.load(
-      '__tests__/assets/levels/lev_valid_1.lev'
-    );
-    const buffer = await levelOriginal.toBuffer();
-    const bufferLevel = await Level.load(buffer);
-    expect(levelOriginal).toEqual(bufferLevel);
-  });
+  test('.toBuffer() of unmodified level matches original', async () => {
+    const filePaths = ['__tests__/assets/levels/lev_valid_1.lev', '__tests__/assets/levels/lev_valid_2.lev'];
 
-  test('.save() unmodified level matches original #1', async () => {
-    const levelOriginal = await Level.load(
-      '__tests__/assets/levels/lev_valid_1.lev'
-    );
-    const path = 'temp/save_lev_valid_1.lev';
-    await levelOriginal.save(path);
-    const savedLevel = await Level.load(path);
-    expect(levelOriginal).toEqual(savedLevel);
-  });
-
-  test('.toBuffer() of unmodified level matches original #2', async () => {
-    const levelOriginal = await Level.load(
-      '__tests__/assets/levels/lev_valid_2.lev'
-    );
-    const buffer = await levelOriginal.toBuffer();
-    const bufferLevel = await Level.load(buffer);
-    expect(levelOriginal).toEqual(bufferLevel);
-  });
-
-  test('.save() unmodified level matches original #2', async () => {
-    const levelOriginal = await Level.load(
-      '__tests__/assets/levels/lev_valid_2.lev'
-    );
-    const path = 'temp/save_lev_valid_2.lev';
-    await levelOriginal.save(path);
-    const savedLevel = await Level.load(path);
-    expect(levelOriginal).toEqual(savedLevel);
+    for (const filePath of filePaths) {
+      const file = await readFile(filePath);
+      const levelOriginal = await Level.from(file);
+      const buffer = await levelOriginal.toBuffer();
+      const bufferLevel = await Level.from(buffer);
+      expect(levelOriginal).toEqual(bufferLevel);
+    }
   });
 });
