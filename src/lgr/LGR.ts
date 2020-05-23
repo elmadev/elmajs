@@ -1,12 +1,8 @@
-import { readFile, writeFile } from 'fs-extra';
-import {
-  Clip,
-  PictureData,
-  PictureDeclaration,
-  PictureType,
-  Transparency,
-} from '../';
+import { Buffer } from 'buffer';
+
+import { PictureData, PictureDeclaration } from '../';
 import { nullpadString, trimString } from '../util';
+import { BufferInput } from '../shared';
 
 // Magic arbitrary number to signify start of LGR file.
 const LGRStart = 0x000003ea;
@@ -15,27 +11,15 @@ const LGREOF = 0x0b2e05e7;
 
 export default class LGR {
   /**
-   * Loads a level file.
-   * @param source Can either be a file path or a buffer
+   * Loads a LGR file from a buffer.
+   * @param buffer
    */
-  public static async load(source: string | Buffer): Promise<LGR> {
-    if (typeof source === 'string') {
-      const file = await readFile(source);
-      return this._parseBuffer(file, source);
-    } else if (source instanceof Buffer) {
-      return this._parseBuffer(source);
-    }
-    throw new Error(
-      'Invalid input argument. Expected string or Buffer instance object'
-    );
+  public static from(buffer: BufferInput): LGR {
+    return this.parseBuffer(Buffer.from(buffer));
   }
 
-  private static async _parseBuffer(
-    buffer: Buffer,
-    path?: string
-  ): Promise<LGR> {
+  private static parseBuffer(buffer: Buffer): LGR {
     const lgr = new LGR();
-    if (path) lgr.path = path;
 
     const version = buffer.toString('ascii', 0, 5);
 
@@ -52,42 +36,34 @@ export default class LGR {
 
     // picture.lst section
     const listLen = buffer.readInt32LE(13);
-    lgr.pictureList = await lgr._parseListData(
-      buffer.slice(17, 17 + 26 * listLen),
-      listLen
-    );
+    lgr.pictureList = lgr.parseListData(buffer.slice(17, 17 + 26 * listLen), listLen);
 
     // pcx data
-    const [pictureData, bytesRead] = await lgr._parsePictureData(
-      buffer.slice(17 + 26 * listLen),
-      pictureLen
-    );
+    const [pictureData, bytesRead] = lgr.parsePictureData(buffer.slice(17 + 26 * listLen), pictureLen);
     lgr.pictureData = pictureData;
 
     const expectedEof = buffer.readInt32LE(17 + 26 * listLen + bytesRead);
     if (expectedEof !== LGREOF) {
-      throw new Error(
-        `EOF marker expected at byte: ${17 + 26 * listLen + bytesRead}`
-      );
+      throw new Error(`EOF marker expected at byte: ${17 + 26 * listLen + bytesRead}`);
     }
     return lgr;
   }
 
   public pictureList: PictureDeclaration[] = [];
   public pictureData: PictureData[] = [];
-  public path: string = '';
+  public path = '';
 
   /**
    * Returns a buffer representation of the LGR.
    */
-  public async toBuffer(): Promise<Buffer> {
+  public toBuffer(): Buffer {
     // calculate how many bytes to allocate:
     // - 21 known static bytes, plus 26 bytes for each item in picture.lst
     // - the image data is then reduced and added to that.
     const pictureListLength = this.pictureList.length;
     const bytesToAlloc = this.pictureData.reduce(
       (bytes, picture) => bytes + picture.data.length + 24,
-      21 + 26 * pictureListLength
+      21 + 26 * pictureListLength,
     );
     const buffer = Buffer.alloc(bytesToAlloc);
     let offset = 0;
@@ -101,33 +77,16 @@ export default class LGR {
     offset += 4;
 
     this.pictureList.forEach((pictureDeclaration, n) => {
-      buffer.write(
-        nullpadString(pictureDeclaration.name, 10),
-        offset + n * 10,
-        10,
-        'ascii'
-      );
-      buffer.writeUInt32LE(
-        pictureDeclaration.pictureType,
-        offset + 10 * pictureListLength + 4 * n
-      );
-      buffer.writeUInt32LE(
-        pictureDeclaration.distance,
-        offset + 14 * pictureListLength + 4 * n
-      );
-      buffer.writeUInt32LE(
-        pictureDeclaration.clipping,
-        offset + 18 * pictureListLength + 4 * n
-      );
-      buffer.writeUInt32LE(
-        pictureDeclaration.transparency,
-        offset + 22 * pictureListLength + 4 * n
-      );
+      buffer.write(nullpadString(pictureDeclaration.name, 10), offset + n * 10, 10, 'ascii');
+      buffer.writeUInt32LE(pictureDeclaration.pictureType, offset + 10 * pictureListLength + 4 * n);
+      buffer.writeUInt32LE(pictureDeclaration.distance, offset + 14 * pictureListLength + 4 * n);
+      buffer.writeUInt32LE(pictureDeclaration.clipping, offset + 18 * pictureListLength + 4 * n);
+      buffer.writeUInt32LE(pictureDeclaration.transparency, offset + 22 * pictureListLength + 4 * n);
     });
 
     offset += 26 * pictureListLength;
 
-    this.pictureData.forEach(pictureData => {
+    this.pictureData.forEach((pictureData) => {
       buffer.write(nullpadString(pictureData.name, 20), offset, 20, 'ascii');
       offset += 20;
       buffer.writeUInt32LE(pictureData.data.length, offset);
@@ -138,15 +97,7 @@ export default class LGR {
     return buffer;
   }
 
-  public async save(path?: string) {
-    const buffer = await this.toBuffer();
-    await writeFile(path || this.path, buffer);
-  }
-
-  private async _parseListData(
-    buffer: Buffer,
-    length: number
-  ): Promise<PictureDeclaration[]> {
+  private parseListData(buffer: Buffer, length: number): PictureDeclaration[] {
     const pictureDeclarations: PictureDeclaration[] = [];
     let offset = 0;
     const names = buffer.slice(offset, offset + length * 10);
@@ -171,10 +122,7 @@ export default class LGR {
     return pictureDeclarations;
   }
 
-  private async _parsePictureData(
-    buffer: Buffer,
-    length: number
-  ): Promise<[PictureData[], number]> {
+  private parsePictureData(buffer: Buffer, length: number): [PictureData[], number] {
     const pictures: PictureData[] = [];
     let offset = 0;
     for (let i = 0; i < length; i++) {

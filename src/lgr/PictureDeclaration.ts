@@ -1,18 +1,5 @@
 import { Clip } from '../shared';
 
-export default class PictureDeclaration {
-  /// Picture name.
-  public name: string = '';
-  /// Picture type.
-  public pictureType: PictureType = PictureType.Normal;
-  /// Default distance, 1-999.
-  public distance: number = 450;
-  /// Default clipping.
-  public clipping: Clip = Clip.Sky;
-  /// Transparency.
-  public transparency: Transparency = Transparency.TopLeft;
-}
-
 export enum PictureType {
   Normal = 100,
   Texture = 101,
@@ -32,4 +19,17 @@ export enum Transparency {
   BottomLeft = 14,
   // Bottom right pixel is transparent color.
   BottomRight = 15,
+}
+
+export default class PictureDeclaration {
+  /// Picture name.
+  public name = '';
+  /// Picture type.
+  public pictureType: PictureType = PictureType.Normal;
+  /// Default distance, 1-999.
+  public distance = 450;
+  /// Default clipping.
+  public clipping: Clip = Clip.Sky;
+  /// Transparency.
+  public transparency: Transparency = Transparency.TopLeft;
 }
