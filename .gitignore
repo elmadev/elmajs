@@ -10,9 +10,7 @@ coverage
 node_modules
 # Optional npm cache directory
 .npm
-# dev test file
-dev-test.js
-# temp test files
-temp
 # build artifacts
-build
+lib
+lib-esm
+bundle
