@@ -1,18 +1,18 @@
 {
-  "name": "node-elma",
+  "name": "elmajs",
   "version": "0.0.1",
   "description": "Elasto Mania NPM package to read, modify and write Elma files",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "build": "tsc && npm run build:esm",
+    "build": "tsc && npm run build:esm && npm run build:umd",
     "build:esm": "tsc -t es6 -m es6 --outDir lib-esm",
     "build:umd": "webpack",
     "docs": "typedoc --out build/docs --excludeExternals --exclude **/*test.ts --mode modules ./src",
     "test": "jest",
     "lint": "eslint '*/**/*.{js,ts,tsx}' --quiet",
     "coverage": "npm run test -- --coverage && cat ./coverage/lcov.info | coveralls",
-    "prepublishOnly": "npm run test && npm run build && npm run docs"
+    "prepublishOnly": "npm run build && npm run test && npm run docs"
   },
   "repository": {
     "type": "git",
@@ -51,7 +51,7 @@
     "webpack-cli": "^3.3.11"
   },
   "files": [
-    "build"
+    "umd", "lib", "lib-esm"
   ],
   "dependencies": {
     "buffer": "^5.6.0"
