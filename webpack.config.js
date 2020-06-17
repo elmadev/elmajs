@@ -17,10 +17,10 @@ module.exports = {
     extensions: ['.ts', '.js'],
   },
   output: {
-    path: path.resolve(__dirname, 'bundle'),
+    path: path.resolve(__dirname, 'umd'),
     filename: '[name].js',
     libraryTarget: 'umd',
-    library: 'elmajs',
+    library: 'ElmaJS',
     umdNamedDefine: true,
   },
   optimization: {
