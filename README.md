@@ -1,20 +1,20 @@
-[![Build Status](https://travis-ci.org/elmadev/node-elma.svg?branch=master)](https://travis-ci.org/elmadev/node-elma) [![Inline docs](http://inch-ci.org/github/elmadev/node-elma.svg?branch=master)](http://inch-ci.org/github/elmadev/node-elma) [![Coverage Status](https://coveralls.io/repos/github/elmadev/node-elma/badge.svg?branch=master)](https://coveralls.io/github/elmadev/node-elma?branch=master) [![Known Vulnerabilities](https://snyk.io/test/github/elmadev/node-elma/badge.svg)](https://snyk.io/test/github/elmadev/node-elma)
+[![Build Status](https://travis-ci.org/elmadev/elmajs.svg?branch=master)](https://travis-ci.org/elmadev/elmajs) [![Inline docs](http://inch-ci.org/github/elmadev/elmajs.svg?branch=master)](http://inch-ci.org/github/elmadev/elmajs) [![Coverage Status](https://coveralls.io/repos/github/elmadev/elmajs/badge.svg?branch=master)](https://coveralls.io/github/elmadev/elmajs?branch=master) [![Known Vulnerabilities](https://snyk.io/test/github/elmadev/elmajs/badge.svg)](https://snyk.io/test/github/elmadev/elmajs)
 
-# node-elma
-Elasto Mania NPM package for working with level and replay files. Currently still under heavy development.
+# elmajs
+Elasto Mania NPM package for working with all main game files: levels, replays, LGRs and state.dat.
 
 # Install
-`npm install node-elma --save`
+`npm install elmajs --save`
 
 # Documentation and usage
-See [https://doclets.io/elmadev/node-elma/master](https://doclets.io/elmadev/node-elma/master).
+See [https://doclets.io/elmadev/elmajs/master](https://doclets.io/elmadev/elmajs/master).
 
 # Contribute
 1.  Fork this project
 2.  Enter the following:
 ```shell
-git clone https://github.com/YOUR-NAME/node-elma.git
-cd node-elma
+git clone https://github.com/YOUR-NAME/elmajs.git
+cd elmajs
 npm install #Alternatively use 'yarn' instead of 'npm install'
 ```
 3.  Create your changes.
