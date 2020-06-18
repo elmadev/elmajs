@@ -10,7 +10,7 @@
     "build:umd": "webpack",
     "docs": "typedoc --out build/docs --excludeExternals --exclude **/*test.ts --mode modules ./src",
     "test": "jest",
-    "lint": "eslint '*/**/*.{js,ts,tsx}' --quiet",
+    "lint": "eslint src --ext .ts",
     "coverage": "npm run test -- --coverage && cat ./coverage/lcov.info | coveralls",
     "prepublishOnly": "npm run build && npm run test && npm run docs"
   },
