@@ -12,7 +12,7 @@
     "test": "jest",
     "lint": "eslint src --ext .ts",
     "coverage": "npm run test -- --coverage",
-    "prepublishOnly": "npm run build && npm run test && npm run docs"
+    "prepublishOnly": "npm run build && npm run test"
   },
   "repository": {
     "type": "git",
