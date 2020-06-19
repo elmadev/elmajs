@@ -29,8 +29,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PA_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: yarn build:docs
       - name: Deploy documentation to Github Pages
-        run: yarn build:docs
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GH_PA_TOKEN }}
