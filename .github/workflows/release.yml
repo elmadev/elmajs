@@ -16,8 +16,10 @@ jobs:
           node-version: 12
       - name: Install dependencies
         run: yarn install --frozen-lockfile
-      - run: yarn coverage
-      - run: npx codecov
+      - name: Generate coverage report
+        run: yarn coverage
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v1
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
