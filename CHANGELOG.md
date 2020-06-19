@@ -1,0 +1,12 @@
+# Changelog
+
+All notable changes to this project will be documented in this file. See
+[Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+## [1.0.1](https://github.com/elmadev/elmajs/compare/v1.0.0...v1.0.1) (2020-06-19)
+
+
+### Bug Fixes
+
+* doc and changelog generation ([3926228](https://github.com/elmadev/elmajs/commit/392622853ce70a6759866b2a37fb364e247493de))
+* release workflow ([7cfa345](https://github.com/elmadev/elmajs/commit/7cfa3455095a87dd9092ec36056ff75116650170))
