@@ -76,7 +76,41 @@
 				<a href="#documentation-and-usage" id="documentation-and-usage" style="color: inherit; text-decoration: none;">
 					<h1>Documentation and usage</h1>
 				</a>
-				<p>See <a href="https://doclets.io/elmadev/elmajs/master">https://doclets.io/elmadev/elmajs/master</a>.</p>
+				<p>See <a href="https://elmadev.github.io/elmajs/">https://elmadev.github.io/elmajs/</a> for extended documentation.</p>
+				<a href="#opening-and-editing-a-level-file-in-nodejs" id="opening-and-editing-a-level-file-in-nodejs" style="color: inherit; text-decoration: none;">
+					<h2>Opening and editing a level file in Node.js</h2>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">&#x27;fs&#x27;</span>);
+<span class="hljs-keyword">const</span> { Level } = <span class="hljs-built_in">require</span>(<span class="hljs-string">&#x27;elmajs&#x27;</span>);
+
+<span class="hljs-keyword">const</span> fileBuffer = fs.readFileSync(<span class="hljs-string">&#x27;C:/EOL/lev/groof89.lev&#x27;</span>);
+<span class="hljs-keyword">const</span> level = Level.from(fileBuffer);
+level.name = <span class="hljs-string">&#x27;rename level&#x27;</span>;
+level.top10.single = []; <span class="hljs-comment">// remove single player best times list</span>
+fs.writeFileSync(<span class="hljs-string">&#x27;testlev.lev&#x27;</span>, level.toBuffer());</code></pre>
+				<a href="#using-umd-bundle-in-browser-directly" id="using-umd-bundle-in-browser-directly" style="color: inherit; text-decoration: none;">
+					<h2>Using UMD bundle in browser directly</h2>
+				</a>
+				<pre><code class="language-html"><span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">&quot;https://unpkg.com/elmajs@1.0.2/umd/main.js&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">script</span>&gt;</span><span class="javascript">
+    (<span class="hljs-keyword">async</span> () =&gt; {
+      <span class="hljs-keyword">const</span> file = <span class="hljs-keyword">await</span> fetch(<span class="hljs-string">&#x27;https://eol.ams3.digitaloceanspaces.com/replays/vq0y3cwqfn/37Spef5269.rec&#x27;</span>);
+      <span class="hljs-keyword">const</span> buffer = <span class="hljs-keyword">await</span> file.arrayBuffer();
+      <span class="hljs-keyword">const</span> rec = ElmaJS.Replay.from(buffer); <span class="hljs-comment">// the UMD bundle adds a ElmaJS global variable with all functionality</span>
+
+      <span class="hljs-keyword">const</span> info = <span class="hljs-built_in">document</span>.getElementById(<span class="hljs-string">&#x27;info&#x27;</span>);
+      <span class="hljs-comment">// returns whether ride in replay is finished (has a touch event as the final event)</span>
+      <span class="hljs-comment">// and the time (if finished, exact same of event -- otherwise approximation based on frame count or a touch event)</span>
+      <span class="hljs-keyword">const</span> { finished, time, reason } = rec.getTime();
+      info.innerHTML = <span class="hljs-string">`<span class="hljs-subst">${rec.level}</span>: <span class="hljs-subst">${time}</span>`</span>; <span class="hljs-comment">// QWQUU037.LEV: 52690</span>
+    })()
+  </span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span>
+
+<span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span>
+  <span class="hljs-tag">&lt;<span class="hljs-name">div</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;info&quot;</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">div</span>&gt;</span>
+<span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span></code></pre>
 				<a href="#contribute" id="contribute" style="color: inherit; text-decoration: none;">
 					<h1>Contribute</h1>
 				</a>
