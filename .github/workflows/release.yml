@@ -20,8 +20,18 @@ jobs:
         run: yarn coverage
       - name: Upload coverage report
         uses: codecov/codecov-action@v1
-      - name: Release
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v2
+        with:
+          extra_plugins: |
+            @semantic-release/changelog@3.0.0
+            @semantic-release/git
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PA_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npx semantic-release
+      - name: Deploy documentation to Github Pages
+        run: yarn build:docs
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GH_PA_TOKEN }}
+          publish_dir: ./docs
