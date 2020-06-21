@@ -210,4 +210,15 @@ describe('Replay', () => {
       expect(replay.toBuffer()).toEqual(file);
     },
   );
+
+  test.each([
+    ['rec_valid_1.rec', 2],
+    ['rec_valid_2.rec', 4],
+    ['rec_valid_3.rec', 4],
+  ])('.apples counts correct number of apples: %s', async (fileName, apples) => {
+    const filePath = `__tests__/assets/replays/${fileName}`;
+    const file = await readFile(filePath);
+    const replay = Replay.from(file);
+    expect(replay.apples).toEqual(apples);
+  });
 });
