@@ -275,4 +275,17 @@ export default class Replay {
       time: Math.round(maxEventTime),
     };
   }
+
+  /**
+   * Returns the number of apples collected in the replay.
+   *
+   * @returns Number of apples
+   */
+  get apples(): number {
+    const apples = this.rides.reduce((apples, ride) => {
+      apples += ride.events.filter((event) => event.type === 4).length;
+      return apples;
+    }, 0);
+    return apples;
+  }
 }
