@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.1.0](https://github.com/elmadev/elmajs/compare/v1.0.2...v1.1.0) (2020-06-21)
+
+
+### Features
+
+* **Replay:** add .apples to show collected apples ([#185](https://github.com/elmadev/elmajs/issues/185)) ([5544d3a](https://github.com/elmadev/elmajs/commit/5544d3af3493763f3d9e4dbbb94d893130248886))
+
 ## [1.0.2](https://github.com/elmadev/elmajs/compare/v1.0.1...v1.0.2) (2020-06-19)
 
 
