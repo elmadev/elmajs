@@ -257,10 +257,10 @@ export default class Replay {
     }
 
     // Set to highest event time.
-    const maxEventTime = lastEvent.time * 2289.37728938;
+    const maxEventTime = lastEvent.time * (0.001 / (0.182 * 0.0024)) * 1000;
 
     // If event difference to frame time is >1 frames of time, probably not finished?
-    if (maxFrameTime > maxEventTime + 34.333) {
+    if (maxFrameTime > maxEventTime + 33.333) {
       return {
         finished: false,
         reason: ReplayFinishStateReason.FrameDifference,
@@ -272,7 +272,7 @@ export default class Replay {
     return {
       finished: true,
       reason: ReplayFinishStateReason.Touch,
-      time: Math.round(maxEventTime),
+      time: Math.floor(maxEventTime),
     };
   }
 
