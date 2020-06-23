@@ -142,7 +142,7 @@ describe('Replay', () => {
     expect(rec.getTime()).toEqual({
       finished: true,
       reason: ReplayFinishStateReason.Touch,
-      time: 14671,
+      time: 14670,
     });
   });
 
@@ -220,5 +220,16 @@ describe('Replay', () => {
     const file = await readFile(filePath);
     const replay = Replay.from(file);
     expect(replay.apples).toEqual(apples);
+  });
+
+  test('.getTime() calculates edge case times correctly', async () => {
+    const filePath = `__tests__/assets/replays/kelogs06vz.rec`;
+    const file = await readFile(filePath);
+    const replay = Replay.from(file);
+    expect(replay.getTime()).toEqual({
+      finished: true,
+      reason: ReplayFinishStateReason.Touch,
+      time: 6379,
+    });
   });
 });
