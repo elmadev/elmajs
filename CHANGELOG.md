@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.1](https://github.com/elmadev/elmajs/compare/v1.1.0...v1.1.1) (2020-06-23)
+
+
+### Bug Fixes
+
+* **Replay:** .getTime() precision ([#187](https://github.com/elmadev/elmajs/issues/187)) ([22847c3](https://github.com/elmadev/elmajs/commit/22847c31894782127e1d12adb99d6a8c475a1a8a))
+
 # [1.1.0](https://github.com/elmadev/elmajs/compare/v1.0.2...v1.1.0) (2020-06-21)
 
 
