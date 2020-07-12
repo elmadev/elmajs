@@ -138,7 +138,7 @@ export default class Level {
         readBytes += 8;
         const y = buffer.readDoubleLE(readBytes);
         readBytes += 8;
-        polygon.vertices.push(new Position(x, -y));
+        polygon.vertices.push(new Position(x, y));
       }
       polygons.push(polygon);
     }
@@ -153,7 +153,7 @@ export default class Level {
       const elmaObject = new ElmaObject();
       elmaObject.position.x = buffer.readDoubleLE(offset);
       offset += 8;
-      elmaObject.position.y = -buffer.readDoubleLE(offset);
+      elmaObject.position.y = buffer.readDoubleLE(offset);
       offset += 8;
       elmaObject.type = buffer.readInt32LE(offset);
       if (elmaObject.type < 1 || elmaObject.type > 4) {
@@ -186,7 +186,7 @@ export default class Level {
       offset += 10;
       picture.position.x = buffer.readDoubleLE(offset);
       offset += 8;
-      picture.position.y = -buffer.readDoubleLE(offset);
+      picture.position.y = buffer.readDoubleLE(offset);
       offset += 8;
       picture.distance = buffer.readInt32LE(offset);
       offset += 4;
@@ -253,7 +253,7 @@ export default class Level {
    * Returns a buffer representation of the level.
    */
   public toBuffer(): Buffer {
-    this.integrity = this.calculateIntegrity();
+    const integrity = this.calculateIntegrity();
     let bufferSize = 850; // all known level attributes' size
     for (const polygon of this.polygons) {
       bufferSize += 8 + 16 * polygon.vertices.length;
@@ -267,8 +267,8 @@ export default class Level {
     buffer.write('POT14', 0, 5, 'ascii');
     buffer.writeUInt16LE(this.link & 0xffff, 5);
     buffer.writeUInt32LE(this.link, 7);
-    for (let i = 0; i < this.integrity.length; i++) {
-      buffer.writeDoubleLE(this.integrity[i], 11 + i * 8);
+    for (let i = 0; i < integrity.length; i++) {
+      buffer.writeDoubleLE(integrity[i], 11 + i * 8);
     }
     const name = nullpadString(this.name, 51);
     buffer.write(name, 43, 51, 'ascii');
@@ -289,7 +289,7 @@ export default class Level {
       for (const vertex of polygon.vertices) {
         buffer.writeDoubleLE(vertex.x, offset);
         offset += 8;
-        buffer.writeDoubleLE(-vertex.y, offset);
+        buffer.writeDoubleLE(vertex.y, offset);
         offset += 8;
       }
     }
@@ -299,7 +299,7 @@ export default class Level {
     for (const obj of this.objects) {
       buffer.writeDoubleLE(obj.position.x, offset);
       offset += 8;
-      buffer.writeDoubleLE(-obj.position.y, offset);
+      buffer.writeDoubleLE(obj.position.y, offset);
       offset += 8;
       buffer.writeInt32LE(obj.type, offset);
       offset += 4;
@@ -323,7 +323,7 @@ export default class Level {
       offset += 10;
       buffer.writeDoubleLE(picture.position.x, offset);
       offset += 8;
-      buffer.writeDoubleLE(-picture.position.y, offset);
+      buffer.writeDoubleLE(picture.position.y, offset);
       offset += 8;
       buffer.writeInt32LE(picture.distance, offset);
       offset += 4;
@@ -346,30 +346,30 @@ export default class Level {
    * Calculates the integrity sums of the level.
    * NOTE: Does not currently detect topology errors.
    */
-  private calculateIntegrity(): number[] {
-    const polSum = this.polygons.reduce((polyAccumulator, polyCurrent) => {
-      return (
-        polyAccumulator +
-        polyCurrent.vertices.reduce((vertAccumulator, vertCurrent) => {
-          return vertAccumulator + vertCurrent.x + vertCurrent.y;
-        }, 0)
-      );
-    }, 0);
+  public calculateIntegrity(): number[] {
+    let polygonSum = 0;
+    for (const polygon of this.polygons) {
+      for (const vertex of polygon.vertices) {
+        polygonSum += vertex.x + vertex.y;
+      }
+    }
 
-    const objSum = this.objects.reduce((objAccumulator, objCurrent) => {
-      let objVal = 0;
-      if (objCurrent.type === ObjectType.Exit) objVal = 1;
-      else if (objCurrent.type === ObjectType.Apple) objVal = 2;
-      else if (objCurrent.type === ObjectType.Killer) objVal = 3;
-      else if (objCurrent.type === ObjectType.Start) objVal = 4;
-      return objAccumulator + objCurrent.position.x + objCurrent.position.y + objVal;
-    }, 0);
+    let objectSum = 0;
+    for (const levelObject of this.objects) {
+      let objectValue = 0;
+      if (levelObject.type === ObjectType.Exit) objectValue = 1;
+      else if (levelObject.type === ObjectType.Apple) objectValue = 2;
+      else if (levelObject.type === ObjectType.Killer) objectValue = 3;
+      else if (levelObject.type === ObjectType.Start) objectValue = 4;
+      objectSum += levelObject.position.x + levelObject.position.y + objectValue;
+    }
 
-    const picSum = this.pictures.reduce((picAccumulator, picCurrent) => {
-      return picAccumulator + picCurrent.position.x + picCurrent.position.y;
-    }, 0);
+    let pictureSum = 0;
+    for (const picture of this.pictures) {
+      pictureSum += picture.position.x + picture.position.y;
+    }
 
-    const sum = (polSum + objSum + picSum) * 3247.764325643;
+    const sum = (polygonSum + objectSum + pictureSum) * 3247.764325643;
 
     return [
       sum,
