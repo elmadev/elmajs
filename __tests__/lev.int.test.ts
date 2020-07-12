@@ -143,6 +143,10 @@ describe('Level', () => {
     const levelOriginal = Level.from(file);
     const buffer = levelOriginal.toBuffer();
     const levelBuffer = Level.from(buffer);
-    expect(levelBuffer).toEqual(levelOriginal);
+    // besides the main check sum of integrity checks, other values are random
+    // so we can't really check equality of those
+    levelOriginal.integrity = [levelOriginal.integrity[0], 0, 0, 0];
+    levelBuffer.integrity = [levelBuffer.integrity[0], 0, 0, 0];
+    expect(levelBuffer).toStrictEqual(levelOriginal);
   });
 });
