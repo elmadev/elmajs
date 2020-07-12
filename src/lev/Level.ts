@@ -347,29 +347,29 @@ export default class Level {
    * NOTE: Does not currently detect topology errors.
    */
   private calculateIntegrity(): number[] {
-    const polSum = this.polygons.reduce((polyAccumulator, polyCurrent) => {
-      return (
-        polyAccumulator +
-        polyCurrent.vertices.reduce((vertAccumulator, vertCurrent) => {
-          return vertAccumulator + vertCurrent.x + vertCurrent.y;
-        }, 0)
-      );
-    }, 0);
+    let polygonSum = 0;
+    for (const polygon of this.polygons) {
+      for (const vertex of polygon.vertices) {
+        polygonSum += vertex.x + vertex.y;
+      }
+    }
 
-    const objSum = this.objects.reduce((objAccumulator, objCurrent) => {
-      let objVal = 0;
-      if (objCurrent.type === ObjectType.Exit) objVal = 1;
-      else if (objCurrent.type === ObjectType.Apple) objVal = 2;
-      else if (objCurrent.type === ObjectType.Killer) objVal = 3;
-      else if (objCurrent.type === ObjectType.Start) objVal = 4;
-      return objAccumulator + objCurrent.position.x + objCurrent.position.y + objVal;
-    }, 0);
+    let objectSum = 0;
+    for (const levelObject of this.objects) {
+      let objectValue = 0;
+      if (levelObject.type === ObjectType.Exit) objectValue = 1;
+      else if (levelObject.type === ObjectType.Apple) objectValue = 2;
+      else if (levelObject.type === ObjectType.Killer) objectValue = 3;
+      else if (levelObject.type === ObjectType.Start) objectValue = 4;
+      objectSum += levelObject.position.x + levelObject.position.y + objectValue;
+    }
 
-    const picSum = this.pictures.reduce((picAccumulator, picCurrent) => {
-      return picAccumulator + picCurrent.position.x + picCurrent.position.y;
-    }, 0);
+    let pictureSum = 0;
+    for (const picture of this.pictures) {
+      pictureSum += picture.position.x + picture.position.y;
+    }
 
-    const sum = (polSum + objSum + picSum) * 3247.764325643;
+    const sum = (polygonSum + objectSum + pictureSum) * 3247.764325643;
 
     return [
       sum,
