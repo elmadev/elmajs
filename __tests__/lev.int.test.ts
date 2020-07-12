@@ -138,15 +138,18 @@ describe('Level', () => {
     return expect(() => Level.from(file)).toThrow(new Error('End of file marker mismatch'));
   });
 
-  test.each(['lev_valid_1.lev', 'lev_valid_2.lev'])('.toBuffer() matches original: %s', async (fileName) => {
-    const file = await readFile(`__tests__/assets/levels/${fileName}`);
-    const levelOriginal = Level.from(file);
-    const buffer = levelOriginal.toBuffer();
-    const levelBuffer = Level.from(buffer);
-    // besides the main check sum of integrity checks, other values are random
-    // so we can't really check equality of those
-    levelOriginal.integrity = [levelOriginal.integrity[0], 0, 0, 0];
-    levelBuffer.integrity = [levelBuffer.integrity[0], 0, 0, 0];
-    expect(levelBuffer).toStrictEqual(levelOriginal);
-  });
+  test.each(['lev_valid_1.lev', 'lev_valid_2.lev', 'APipe083.lev', 'mawpi126.lev'])(
+    '.toBuffer() matches original: %s',
+    async (fileName) => {
+      const file = await readFile(`__tests__/assets/levels/${fileName}`);
+      const levelOriginal = Level.from(file);
+      const buffer = levelOriginal.toBuffer();
+      const levelBuffer = Level.from(buffer);
+      // besides the main check sum of integrity checks, other values are random
+      // so we can't really check equality of those
+      levelOriginal.integrity = [levelOriginal.integrity[0], 0, 0, 0];
+      levelBuffer.integrity = [levelBuffer.integrity[0], 0, 0, 0];
+      expect(levelBuffer).toStrictEqual(levelOriginal);
+    },
+  );
 });
