@@ -146,9 +146,12 @@ describe('Level', () => {
       const buffer = levelOriginal.toBuffer();
       const levelBuffer = Level.from(buffer);
       // besides the main check sum of integrity checks, other values are random
-      // so we can't really check equality of those
-      levelOriginal.integrity = [levelOriginal.integrity[0], 0, 0, 0];
-      levelBuffer.integrity = [levelBuffer.integrity[0], 0, 0, 0];
+      // so we can't really check equality of those.
+      // in addition, there is some double precision weirdness going on which I think we'll ignore for now.
+      // I *believe* elma just does some bounds checking, so here we just round the integrity checksum 🤷‍♀️
+      expect(levelBuffer.integrity[0]).toBeCloseTo(levelOriginal.integrity[0], 6);
+      levelOriginal.integrity = [0, 0, 0, 0];
+      levelBuffer.integrity = [0, 0, 0, 0];
       expect(levelBuffer).toStrictEqual(levelOriginal);
     },
   );

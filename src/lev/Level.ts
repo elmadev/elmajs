@@ -346,7 +346,7 @@ export default class Level {
    * Calculates the integrity sums of the level.
    * NOTE: Does not currently detect topology errors.
    */
-  private calculateIntegrity(): number[] {
+  public calculateIntegrity(): number[] {
     let polygonSum = 0;
     for (const polygon of this.polygons) {
       for (const vertex of polygon.vertices) {
