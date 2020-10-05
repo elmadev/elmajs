@@ -9,6 +9,7 @@ Elasto Mania NPM package for working with all main game files: levels, replays, 
 
 # Documentation and usage
 See [https://elmadev.github.io/elmajs/](https://elmadev.github.io/elmajs/) for extended documentation.
+You will find the repository here: [https://github.com/elmadev/elmajs](https://github.com/elmadev/elmajs)
 
 ## Opening and editing a level file in Node.js
 
