@@ -282,6 +282,32 @@ export default class Replay {
    * @returns Number of apples
    */
   get apples(): number {
+    let apples = 0;
+
+    for (const ride of this.rides) {
+      const touchEvents = ride.events.filter((event) => event.type === 0);
+      const appleEvents = ride.events.filter((event) => event.type === 4);
+      const unique = [...new Set(touchEvents.map((event) => event.touchInfo))].map((event, idx) => touchEvents[idx]);
+
+      appleEvents.forEach((appleEvent) => {
+        const touchEventWithSameTime = unique.findIndex((touchEvent) => {
+          return touchEvent.time === appleEvent.time;
+        });
+
+        if (touchEventWithSameTime > -1) {
+          unique.splice(touchEventWithSameTime, 1);
+          apples += 1;
+        }
+      });
+    }
+
+    return apples;
+  }
+
+  /**
+   * Returns the total number of apples collected in the replay (including "apple bugs")
+   */
+  get totalApples(): number {
     const apples = this.rides.reduce((apples, ride) => {
       apples += ride.events.filter((event) => event.type === 4).length;
       return apples;
