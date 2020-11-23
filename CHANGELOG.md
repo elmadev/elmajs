@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.2.0](https://github.com/elmadev/elmajs/compare/v1.1.2...v1.2.0) (2020-11-23)
+
+
+### Features
+
+* **Replay:** add separate .totalApples count ([ba863a0](https://github.com/elmadev/elmajs/commit/ba863a017448f2063b7049478af780fc4d5c8f9a))
+
 ## [1.1.2](https://github.com/elmadev/elmajs/compare/v1.1.1...v1.1.2) (2020-07-12)
 
 
