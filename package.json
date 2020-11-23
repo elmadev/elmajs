@@ -10,6 +10,7 @@
     "build:umd": "webpack",
     "build:docs": "typedoc ./src",
     "test": "jest",
+    "test:watch": "jest --watch",
     "lint": "eslint src --ext .ts",
     "coverage": "npm run test -- --coverage",
     "prepublishOnly": "npm run build && npm run test"
