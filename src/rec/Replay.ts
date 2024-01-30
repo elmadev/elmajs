@@ -285,7 +285,7 @@ export default class Replay {
     let apples = 0;
 
     for (const ride of this.rides) {
-      const touchEvents = ride.events.filter((event) => event.type === 0);
+      const touchEvents = ride.events.filter((event) => event.type === 0).sort((a, b) => b.time - a.time);
       const appleEvents = ride.events.filter((event) => event.type === 4);
       const unique = [...new Set(touchEvents.map((event) => event.touchInfo))].map((event, idx) => touchEvents[idx]);
 
