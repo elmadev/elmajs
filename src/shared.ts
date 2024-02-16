@@ -1,5 +1,3 @@
-import { Buffer } from 'buffer';
-
 /**
  * Types that can be converted to a Buffer object
  */
