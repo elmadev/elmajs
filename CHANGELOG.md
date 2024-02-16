@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.2.1](https://github.com/elmadev/elmajs/compare/v1.2.0...v1.2.1) (2024-02-16)
+
+
+### Bug Fixes
+
+* **Replay:** flower and apple at same time counts as NoTouch ([#408](https://github.com/elmadev/elmajs/issues/408)) ([b8042a5](https://github.com/elmadev/elmajs/commit/b8042a5094c4ce4b8d01371ad31689b65e777553))
+
 # [1.2.0](https://github.com/elmadev/elmajs/compare/v1.1.2...v1.2.0) (2020-11-23)
 
 
