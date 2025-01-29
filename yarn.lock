@@ -542,6 +542,11 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-14.0.13.tgz#ee1128e881b874c371374c1f72201893616417c9"
   integrity sha512-rouEWBImiRaSJsVA+ITTFM6ZxibuAlTuNOCyxVbwreu6k6+ujs7DfnU9o+PShFhET78pMBl3eH+AGSI5eOTkPA==
 
+"@types/pcx-js@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@types/pcx-js/-/pcx-js-1.1.0.tgz#f724a75876d439bab130374a22c0c635873f9bbc"
+  integrity sha512-dfDGHirvj6wgSeY8ba9cN6ZkmCNwVVETFz+ldPSpmP82dKlcRgVzRk+Ep2YnE0VLO88pfuC6uMIEbtVO5oxfuQ==
+
 "@types/stack-utils@^1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@types/stack-utils/-/stack-utils-1.0.1.tgz#0a851d3bd96498fa25c33ab7278ed3bd65f06c3e"
@@ -3646,6 +3651,11 @@ path-type@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/path-type/-/path-type-4.0.0.tgz#84ed01c0a7ba380afe09d90a8c180dcd9d03043b"
   integrity sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==
+
+pcx-js@^1.1.0:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/pcx-js/-/pcx-js-1.1.1.tgz#b7898452d346939807e046047f5c54a312551c85"
+  integrity sha512-IjMz5/L9KLqPtnG5rBjpq6QlMevrhn4sDVppJeV3g8Qs02x0Mw63CaNXGAcBp5pAd9BjANgds1plVY6kKJTfKw==
 
 performance-now@^2.1.0:
   version "2.1.0"
