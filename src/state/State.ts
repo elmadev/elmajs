@@ -1,7 +1,7 @@
 import { Buffer } from 'buffer';
 
 import { Top10 } from '../shared';
-import { nullpadString, trimString, bufferToTop10, top10ToBuffer } from '../util';
+import { nullpadString, trimString, bufferToTop10, top10ToBuffer, cryptPiece, CryptKey } from '../util';
 
 const STATE_SIZE = 67910;
 const PLAYER_STRUCT_SIZE = 116;
@@ -15,6 +15,7 @@ const NUM_LEVELS = 90;
 const STATE_START = 200;
 const STATE_END = 123432221;
 const STATE_END_ALT = 123432112;
+const CRYPT_KEY: CryptKey = [23, 9782, 3391, 31];
 
 export enum PlayMode {
   Single = 1,
@@ -212,25 +213,10 @@ export default class State {
 
     let curr = 0;
     for (const p of statePieces) {
-      const decryptedPart = this.cryptStatePiece(bufCopy.slice(curr, curr + p));
+      const decryptedPart = cryptPiece(bufCopy.slice(curr, curr + p), CRYPT_KEY);
       decryptedPart.copy(bufCopy, curr);
       curr += p;
     }
-    return bufCopy;
-  }
-
-  private static cryptStatePiece(buffer: Buffer): Buffer {
-    const bufCopy = Buffer.from(buffer);
-    let ebp8 = 0x17;
-    let ebp10 = 0x2636;
-
-    for (let i = 0; i < buffer.length; i++) {
-      bufCopy[i] ^= ebp8 & 0xff;
-      ebp10 += (ebp8 % 0xd3f) * 0xd3f;
-      ebp8 = ebp10 * 0x1f + 0xd3f;
-      ebp8 = (ebp8 & 0xffff) - 2 * (ebp8 & 0x8000);
-    }
-
     return bufCopy;
   }
 

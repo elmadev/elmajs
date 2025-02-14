@@ -115,3 +115,21 @@ export function bufferToTop10(buffer: BufferInput): Top10 {
     multi,
   };
 }
+
+export type CryptKey = [number, number, number, number];
+export function cryptPiece(buffer: Buffer, key: CryptKey): Buffer {
+  const bufCopy = Buffer.from(buffer);
+  let a = key[0];
+  let b = key[1];
+  const c = key[2];
+  const d = key[3];
+
+  for (let i = 0; i < buffer.length; i++) {
+    bufCopy[i] ^= a & 0xff;
+    b += (a % c) * c;
+    a = b * d + c;
+    a = (a & 0xffff) - 2 * (a & 0x8000);
+  }
+
+  return bufCopy;
+}
