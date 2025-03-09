@@ -231,49 +231,121 @@ export default class Replay {
    * Get time of replay in milliseconds.
    */
   public getTime(): FinishState {
-    // First check if last event was a touch event in ride(s) event data.
-    const lastEvent = this.rides.reduce((prev: undefined | Event, ride) => {
-      const prevTime = prev ? prev.time : 0;
-      const lastRideEvent = ride.events.length > 0 ? ride.events[ride.events.length - 1] : undefined;
-      const lastRideEventTime = lastRideEvent ? lastRideEvent.time : 0;
-      if (lastRideEventTime > prevTime) {
-        return lastRideEvent;
-      }
-      return prev;
+    // First get the last event of (each) ride.
+    const lastEvents = this.rides.map((ride) =>
+      ride.events.length > 0 ? ride.events[ride.events.length - 1] : undefined,
+    );
+
+    // Time of each ride's last event, in milliseconds.
+    const lastEventTimes = lastEvents.map((event: undefined | Event) => (event ? event.timeInMilliseconds : undefined));
+
+    // Time of the final event(s) (= the event(s) with the highest time), in milliseconds.
+    const finalEventTime = lastEventTimes.reduce((prev: undefined | number, time: undefined | number) => {
+      if (!prev) {
+        return time;
+      } else if (!time) {
+        return prev;
+      } else return time > prev ? time : prev;
     }, undefined);
 
-    // Highest frame time.
-    const maxFrames = this.rides.reduce((prev, ride) => {
-      return ride.frames.length > prev ? ride.frames.length : prev;
-    }, 0);
-    const maxFrameTime = maxFrames * 33.333;
+    // Get all Touch/Apple events with finalEventTime. Other events with finalEventTime are filtered out.
+    // (For example player 2 might have a GroundTouch event with the same time as player 1's flower Touch.)
+    const finalEvents = <Event[]>[];
+    for (const ride of this.rides) {
+      const touchOrAppleEvents = ride.events.filter(
+        (event) =>
+          event.timeInMilliseconds === finalEventTime &&
+          (event.type === EventType.Touch || event.type === EventType.Apple),
+      );
+      finalEvents.push(...touchOrAppleEvents);
+    }
 
-    // If no touch event, return approximate frame time.
-    if ((lastEvent && lastEvent.type !== EventType.Touch) || !lastEvent) {
+    // Time of each ride's last frame, in milliseconds.
+    const FrameDuration = 1000 / 30.0;
+    const lastFrameTimes = this.rides.map((ride) => ride.frames.length * FrameDuration);
+
+    // Highest frame time, in milliseconds.
+    const finalFrameTime = lastFrameTimes.reduce((prev, time) => {
+      return time > prev ? time : prev;
+    }, 0);
+
+    // Not finished if the final events don't include a Touch or Apple event, so return approximate frame time.
+    if (finalEvents.length === 0) {
       return {
         finished: false,
         reason: ReplayFinishStateReason.NoTouch,
-        time: Math.round(maxFrameTime),
+        time: Math.round(finalFrameTime),
       };
     }
 
-    // Set to highest event time.
-    const maxEventTime = lastEvent.time * (0.001 / (0.182 * 0.0024)) * 1000;
+    // Info about whether each ride's last event is within ~1 frame of time from the end of that ride.
+    // In finished rides, flower Touch is sometimes slightly more than FrameDuration away from the end,
+    // so a small extra tolerance is allowed. (In singleplayer replays, the extra time can range at least
+    // from 6.0e-13 to 4.9e-8 ms, and in multiplayer replays at least from 0.333 ms to 3.333 ms.)
+    const extraTolerance = this.rides.length > 1 ? 3.5 : 1.0e-7;
+    const rideHasLastFrameEvent = lastFrameTimes.map((lastFrameTime, idx) => {
+      const lastEventTime = lastEventTimes[idx];
+      return lastEventTime ? lastFrameTime <= lastEventTime + FrameDuration + extraTolerance : false;
+    });
 
-    // If event difference to frame time is >1 frames of time, probably not finished?
-    if (maxFrameTime > maxEventTime + 33.333) {
+    // If the highest event time is not within ~1 frame of time from the end, probably not finished?
+    const finalEventIdx = lastEventTimes.lastIndexOf(finalEventTime);
+    if (!rideHasLastFrameEvent[finalEventIdx]) {
       return {
         finished: false,
         reason: ReplayFinishStateReason.FrameDifference,
-        time: Math.round(maxFrameTime),
+        time: Math.round(finalFrameTime),
       };
     }
 
-    // Otherwise probably finished?
+    // For multiplayer replays where one player waits at the flower for the other to take an apple.
+    let waitingAtFlower = false;
+    let endsWithAppleTake = false;
+
+    let isFinished = false;
+    for (const [idx, ride] of this.rides.entries()) {
+      // Potentially finished, if ride ends in a Touch or Apple event.
+      const lastEvent = lastEvents[idx];
+      if (lastEvent && rideHasLastFrameEvent[idx] && !isFinished) {
+        if (lastEvent.type === EventType.Touch) {
+          if (
+            ride.events.length >= 2 &&
+            ride.events[ride.events.length - 2].type === EventType.Touch &&
+            ride.events[ride.events.length - 2].time !== lastEvent.time
+          ) {
+            // Probably ended at flower, but not all apples were taken.
+            isFinished = false;
+            waitingAtFlower = true;
+          } else {
+            // Otherwise probably finished, but false positives are possible (e.g., dying to killer).
+            isFinished = true;
+          }
+        } else if (lastEvent.type === EventType.Apple) {
+          endsWithAppleTake = true;
+          if (ride.events.length >= 3) {
+            const endAppleCount = ride.events.filter(
+              (event) => event.type === EventType.Apple && event.time === lastEvent.time,
+            ).length;
+            const endTouchEventCount = ride.events.filter(
+              (event) => event.type === EventType.Touch && event.time === lastEvent.time,
+            ).length;
+            if (endTouchEventCount >= endAppleCount + 1) {
+              // Apple(s) and flower taken at the same time. N apples and a flower will
+              // generate (at least) N+1 Touch events, followed by N Apple events.
+              isFinished = true;
+            }
+          }
+        }
+      }
+    }
+
+    // Multiplayer finish.
+    if (waitingAtFlower && endsWithAppleTake) isFinished = true;
+
     return {
-      finished: true,
-      reason: ReplayFinishStateReason.Touch,
-      time: Math.floor(maxEventTime),
+      finished: isFinished,
+      reason: isFinished ? ReplayFinishStateReason.Touch : ReplayFinishStateReason.NoTouch,
+      time: isFinished && finalEventTime ? Math.floor(finalEventTime) : Math.round(finalFrameTime),
     };
   }
 

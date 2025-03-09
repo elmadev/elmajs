@@ -135,6 +135,28 @@ describe('Replay', () => {
     });
   });
 
+  test('getTime, finished, single, flower and apple', async () => {
+    const filePath = '__tests__/assets/replays/14be1756wow.rec';
+    const file = await readFile(filePath);
+    const rec = Replay.from(file);
+    expect(rec.getTime()).toEqual({
+      finished: true,
+      reason: ReplayFinishStateReason.Touch,
+      time: 17566,
+    });
+  });
+
+  test('getTime, finished, single, large framediff', async () => {
+    const filePath = '__tests__/assets/replays/22edahl4219.rec';
+    const file = await readFile(filePath);
+    const rec = Replay.from(file);
+    expect(rec.getTime()).toEqual({
+      finished: true,
+      reason: ReplayFinishStateReason.Touch,
+      time: 42199,
+    });
+  });
+
   test('getTime, finished, multi', async () => {
     const filePath = '__tests__/assets/replays/rec_valid_2.rec';
     const file = await readFile(filePath);
@@ -143,6 +165,50 @@ describe('Replay', () => {
       finished: true,
       reason: ReplayFinishStateReason.Touch,
       time: 14670,
+    });
+  });
+
+  test('getTime, finished, multi, wait 1', async () => {
+    const filePath = '__tests__/assets/replays/multi_finished_p1_waits_at_flower.rec';
+    const file = await readFile(filePath);
+    const rec = Replay.from(file);
+    expect(rec.getTime()).toEqual({
+      finished: true,
+      reason: ReplayFinishStateReason.Touch,
+      time: 8294,
+    });
+  });
+
+  test('getTime, finished, multi, wait 2', async () => {
+    const filePath = '__tests__/assets/replays/multi_finished_p2_waits_at_flower.rec';
+    const file = await readFile(filePath);
+    const rec = Replay.from(file);
+    expect(rec.getTime()).toEqual({
+      finished: true,
+      reason: ReplayFinishStateReason.Touch,
+      time: 7815,
+    });
+  });
+
+  test('getTime, finished, multi, p1 flower and p2 groundtouch', async () => {
+    const filePath = '__tests__/assets/replays/40MarAbu.rec';
+    const file = await readFile(filePath);
+    const rec = Replay.from(file);
+    expect(rec.getTime()).toEqual({
+      finished: true,
+      reason: ReplayFinishStateReason.Touch,
+      time: 37090,
+    });
+  });
+
+  test('getTime, finished, multi, large framediff', async () => {
+    const filePath = '__tests__/assets/replays/53x813.rec';
+    const file = await readFile(filePath);
+    const rec = Replay.from(file);
+    expect(rec.getTime()).toEqual({
+      finished: true,
+      reason: ReplayFinishStateReason.Touch,
+      time: 8139,
     });
   });
 
@@ -168,6 +234,17 @@ describe('Replay', () => {
     });
   });
 
+  test('getTime, unfinished, single, esc', async () => {
+    const filePath = '__tests__/assets/replays/esc_at_flower.rec';
+    const file = await readFile(filePath);
+    const rec = Replay.from(file);
+    expect(rec.getTime()).toEqual({
+      finished: false,
+      reason: ReplayFinishStateReason.NoTouch,
+      time: 4867,
+    });
+  });
+
   test('getTime, unfinished, multi, event', async () => {
     const filePath = '__tests__/assets/replays/multi_event_unfinished.rec';
     const file = await readFile(filePath);
@@ -187,6 +264,39 @@ describe('Replay', () => {
       finished: false,
       reason: ReplayFinishStateReason.NoTouch,
       time: 3233,
+    });
+  });
+
+  test('getTime, unfinished, multi, no event', async () => {
+    const filePath = '__tests__/assets/replays/multi_unfinished_no_events.rec';
+    const file = await readFile(filePath);
+    const rec = Replay.from(file);
+    expect(rec.getTime()).toEqual({
+      finished: false,
+      reason: ReplayFinishStateReason.NoTouch,
+      time: 133,
+    });
+  });
+
+  test('getTime, unfinished, multi, esc 1', async () => {
+    const filePath = '__tests__/assets/replays/multi_unfinished_p1_escs_at_flower.rec';
+    const file = await readFile(filePath);
+    const rec = Replay.from(file);
+    expect(rec.getTime()).toEqual({
+      finished: false,
+      reason: ReplayFinishStateReason.NoTouch,
+      time: 4300,
+    });
+  });
+
+  test('getTime, unfinished, multi, esc 2', async () => {
+    const filePath = '__tests__/assets/replays/multi_unfinished_p2_escs_at_flower.rec';
+    const file = await readFile(filePath);
+    const rec = Replay.from(file);
+    expect(rec.getTime()).toEqual({
+      finished: false,
+      reason: ReplayFinishStateReason.NoTouch,
+      time: 8067,
     });
   });
 
