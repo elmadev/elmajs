@@ -10,6 +10,10 @@ export default class Event {
     this.touchInfo = 0;
     this.groundInfo = 0;
   }
+
+  get timeInMilliseconds(): number {
+    return this.time * (0.001 / (0.182 * 0.0024)) * 1000;
+  }
 }
 
 export enum EventType {

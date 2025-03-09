@@ -111,19 +111,20 @@ export default class Replay {
 
     let offset = 0;
     for (let i = 0; i < numEvents; i++) {
-      const time = buffer.readDoubleLE(offset);
+      const event = new Event();
+      event.time = buffer.readDoubleLE(offset);
       offset += 8;
-      const touchInfo = buffer.readInt16LE(offset);
+      event.touchInfo = buffer.readInt16LE(offset);
       offset += 2;
-      const type = buffer.readUInt8(offset);
+      event.type = buffer.readUInt8(offset);
       offset += 2; // 1 + 1 padding
-      const groundInfo = buffer.readFloatLE(offset);
+      event.groundInfo = buffer.readFloatLE(offset);
       offset += 4;
-      if (type < 0 || type > 7) {
-        throw new Error(`Invalid event type value=${type} at event offset=${offset}`);
+      if (event.type < 0 || event.type > 7) {
+        throw new Error(`Invalid event type value=${event.type} at event offset=${offset}`);
       }
 
-      events.push({ time, touchInfo, type, groundInfo });
+      events.push(event);
     }
 
     return events;
