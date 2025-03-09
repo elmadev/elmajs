@@ -251,7 +251,7 @@ describe('Replay', () => {
     const rec = Replay.from(file);
     expect(rec.getTime()).toEqual({
       finished: false,
-      reason: ReplayFinishStateReason.NoTouch,
+      reason: ReplayFinishStateReason.FrameDifference,
       time: 1600,
     });
   });
@@ -306,7 +306,7 @@ describe('Replay', () => {
     const rec = Replay.from(file);
     expect(rec.getTime()).toEqual({
       finished: false,
-      reason: ReplayFinishStateReason.NoTouch,
+      reason: ReplayFinishStateReason.FrameDifference,
       time: 8567,
     });
   });
