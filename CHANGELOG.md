@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file. See
 [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.2.4](https://github.com/elmadev/elmajs/compare/v1.2.3...v1.2.4) (2025-03-12)
+
+
+### Bug Fixes
+
+* **Replay:** improve finish detection ([#425](https://github.com/elmadev/elmajs/issues/425)) ([86abf39](https://github.com/elmadev/elmajs/commit/86abf39ed9488572a4e0a4ddd2f8e19f80f752e0))
+
 ## [1.2.3](https://github.com/elmadev/elmajs/compare/v1.2.2...v1.2.3) (2025-03-04)
 
 
